@@ -56,15 +56,30 @@ def load_inference_artifacts(config_path: str = "config.yaml") -> Dict[str, Any]
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"Trained LSTM weights not found at {model_path}. Run training first.")
 
-    checkpoint = torch.load(model_path, map_location=torch.device("cpu"))
+    checkpoint = torch.load(model_path, map_location=torch.device("cpu"), weights_only=False)
+    if isinstance(checkpoint, dict) and "model_state_dict" in checkpoint:
+        state_dict = checkpoint["model_state_dict"]
+        input_dim = checkpoint.get("input_dim", state_dict["input_proj.0.weight"].shape[1])
+        hidden_dim = checkpoint.get("hidden_dim", state_dict["input_proj.0.weight"].shape[0])
+        num_layers = checkpoint.get("num_layers", 2)
+        forecast_horizon_k = checkpoint.get("forecast_horizon_k", 3)
+        num_stages = checkpoint.get("num_stages", 6)
+    else:
+        state_dict = checkpoint
+        input_dim = state_dict["input_proj.0.weight"].shape[1]
+        hidden_dim = state_dict["input_proj.0.weight"].shape[0]
+        num_layers = 2
+        forecast_horizon_k = 3
+        num_stages = 6
+
     lstm_model = ChronoGuardLSTM(
-        input_dim=checkpoint["input_dim"],
-        hidden_dim=checkpoint["hidden_dim"],
-        num_layers=checkpoint["num_layers"],
-        forecast_horizon_k=checkpoint["forecast_horizon_k"],
-        num_stages=checkpoint["num_stages"],
+        input_dim=input_dim,
+        hidden_dim=hidden_dim,
+        num_layers=num_layers,
+        forecast_horizon_k=forecast_horizon_k,
+        num_stages=num_stages,
     )
-    lstm_model.load_state_dict(checkpoint["model_state_dict"])
+    lstm_model.load_state_dict(state_dict)
     lstm_model.eval()
 
     _MODEL_CACHE = {
