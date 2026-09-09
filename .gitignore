@@ -19,8 +19,8 @@ data/processed/
 # Preserve demo samples
 !data/samples/
 
-# SQLite Instance database
-instance/*.db
+# SQLite Instance database & runtime uploads
+instance/
 *.sqlite3
 
 # OS / Editor files

@@ -55,8 +55,8 @@
             <td class="py-3 px-4 text-gray-300">
               {{ job.total_windows }}
             </td>
-            <td class="py-3 px-4 font-bold" style="color: {% if job.overall_max_infiltration_prob < 0.33 %}#10B981{% elif job.overall_max_infiltration_prob < 0.67 %}#F59E0B{% else %}#EF4444{% endif %};">
-              {{ (job.overall_max_infiltration_prob * 100)|round(1) if job.overall_max_infiltration_prob is not None else 0 }}%
+            <td class="py-3 px-4 font-bold" style="color: {% if job.overall_max_infiltration_prob is not none and job.overall_max_infiltration_prob < 0.33 %}#10B981{% elif job.overall_max_infiltration_prob is not none and job.overall_max_infiltration_prob < 0.67 %}#F59E0B{% elif job.overall_max_infiltration_prob is not none %}#EF4444{% else %}#94A3B8{% endif %};">
+              {% if job.overall_max_infiltration_prob is not none %}{{ (job.overall_max_infiltration_prob * 100)|round(1) }}%{% else %}—{% endif %}
             </td>
             <td class="py-3 px-4">
               <span class="px-2 py-0.5 rounded text-[10px] 

@@ -41,10 +41,32 @@ def test_upload_page(client):
 
 
 def test_history_page(client):
-    """Verify history audit log loads successfully."""
+    """Verify history audit log loads successfully when empty."""
     res = client.get("/history")
     assert res.status_code == 200
     assert b"Historical Analysis Logs" in res.data
+
+
+def test_history_page_with_records(client):
+    """Verify history audit log loads successfully with real job records."""
+    from src.db.models import AnalysisJob
+    with app.app_context():
+        job = AnalysisJob(
+            id="test-job-uuid-1234",
+            original_filename="sample_capture.csv",
+            status="done",
+            total_windows=10,
+            overall_max_infiltration_prob=0.85,
+            dominant_stage="Reconnaissance",
+        )
+        db.session.add(job)
+        db.session.commit()
+
+    res = client.get("/history")
+    assert res.status_code == 200
+    assert b"sample_capture.csv" in res.data
+    assert b"Reconnaissance" in res.data
+    assert b"85.0%" in res.data
 
 
 def test_unknown_job_status(client):
