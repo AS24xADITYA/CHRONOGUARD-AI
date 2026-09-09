@@ -1,0 +1,281 @@
+{
+  "scaler": "RobustScaler (Full Train + 5-sigma clip)",
+  "split": "3-way chronological (65% Train, 10% Val, 25% Test)",
+  "total_test_samples": 1805,
+  "seeds_evaluated": [
+    42,
+    123,
+    456,
+    789,
+    2024
+  ],
+  "baseline": {
+    "mean_macro_f1": 57.43,
+    "std_macro_f1": 0.0,
+    "mean_accuracy": 74.74,
+    "std_accuracy": 0.0,
+    "mean_fpr": 25.21,
+    "std_fpr": 0.0,
+    "mean_fnr": 21.39,
+    "std_fnr": 0.0,
+    "stages": {
+      "Benign": {
+        "mean_f1": 80.63,
+        "std_f1": 0.0
+      },
+      "Reconnaissance": {
+        "mean_f1": 83.38,
+        "std_f1": 0.0
+      },
+      "Credential Access": {
+        "mean_f1": 0.0,
+        "std_f1": 0.0
+      },
+      "Initial Access": {
+        "mean_f1": 82.61,
+        "std_f1": 0.0
+      },
+      "Lateral Movement": {
+        "mean_f1": 0.0,
+        "std_f1": 0.0
+      },
+      "Impact": {
+        "mean_f1": 97.96,
+        "std_f1": 0.0
+      }
+    }
+  },
+  "lstm": {
+    "mean_macro_f1": 61.03,
+    "std_macro_f1": 10.47,
+    "range_macro_f1": [
+      47.05,
+      73.01
+    ],
+    "mean_accuracy": 79.87,
+    "std_accuracy": 8.07,
+    "mean_fpr": 19.98,
+    "std_fpr": 13.66,
+    "mean_fnr": 15.85,
+    "std_fnr": 9.01,
+    "selected_epochs": [
+      5,
+      12,
+      3,
+      8,
+      6
+    ],
+    "horizons": {
+      "horizon_t+1": {
+        "mean_accuracy": 86.25,
+        "std_accuracy": 6.17,
+        "mean_f1": 80.06,
+        "std_f1": 7.14
+      },
+      "horizon_t+2": {
+        "mean_accuracy": 86.15,
+        "std_accuracy": 5.58,
+        "mean_f1": 79.82,
+        "std_f1": 6.26
+      },
+      "horizon_t+3": {
+        "mean_accuracy": 85.47,
+        "std_accuracy": 5.31,
+        "mean_f1": 78.8,
+        "std_f1": 5.74
+      }
+    },
+    "stages": {
+      "Benign": {
+        "mean_f1": 84.55,
+        "std_f1": 7.34,
+        "min_f1": 75.27,
+        "max_f1": 92.82
+      },
+      "Reconnaissance": {
+        "mean_f1": 83.52,
+        "std_f1": 3.2,
+        "min_f1": 79.62,
+        "max_f1": 88.41
+      },
+      "Credential Access": {
+        "mean_f1": 35.01,
+        "std_f1": 42.89,
+        "min_f1": 0.0,
+        "max_f1": 87.96
+      },
+      "Initial Access": {
+        "mean_f1": 66.69,
+        "std_f1": 30.71,
+        "min_f1": 6.9,
+        "max_f1": 88.46
+      },
+      "Lateral Movement": {
+        "mean_f1": 0.0,
+        "std_f1": 0.0,
+        "min_f1": 0.0,
+        "max_f1": 0.0
+      },
+      "Impact": {
+        "mean_f1": 96.42,
+        "std_f1": 1.11,
+        "min_f1": 94.45,
+        "max_f1": 97.61
+      }
+    },
+    "runs": [
+      {
+        "seed": 42,
+        "selected_epoch": 5,
+        "val_macro_f1": 67.59,
+        "test_macro_f1": 73.01,
+        "test_accuracy": 72.96,
+        "t1_f1": 69.75,
+        "recon_f1": 88.41,
+        "cred_f1": 87.11,
+        "init_f1": 88.46,
+        "lat_f1": 0.0,
+        "impact_f1": 97.28
+      },
+      {
+        "seed": 123,
+        "selected_epoch": 12,
+        "val_macro_f1": 58.43,
+        "test_macro_f1": 47.05,
+        "test_accuracy": 87.65,
+        "t1_f1": 84.23,
+        "recon_f1": 85.97,
+        "cred_f1": 0.0,
+        "init_f1": 6.9,
+        "lat_f1": 0.0,
+        "impact_f1": 97.61
+      },
+      {
+        "seed": 456,
+        "selected_epoch": 3,
+        "val_macro_f1": 63.05,
+        "test_macro_f1": 72.9,
+        "test_accuracy": 82.05,
+        "t1_f1": 88.36,
+        "recon_f1": 81.59,
+        "cred_f1": 87.96,
+        "init_f1": 85.19,
+        "lat_f1": 0.0,
+        "impact_f1": 96.61
+      },
+      {
+        "seed": 789,
+        "selected_epoch": 8,
+        "val_macro_f1": 62.31,
+        "test_macro_f1": 59.26,
+        "test_accuracy": 88.53,
+        "t1_f1": 84.45,
+        "recon_f1": 82.01,
+        "cred_f1": 0.0,
+        "init_f1": 84.62,
+        "lat_f1": 0.0,
+        "impact_f1": 96.13
+      },
+      {
+        "seed": 2024,
+        "selected_epoch": 6,
+        "val_macro_f1": 54.85,
+        "test_macro_f1": 52.94,
+        "test_accuracy": 68.14,
+        "t1_f1": 73.51,
+        "recon_f1": 79.62,
+        "cred_f1": 0.0,
+        "init_f1": 68.29,
+        "lat_f1": 0.0,
+        "impact_f1": 94.45
+      }
+    ],
+    "credential_access_diagnostics": [
+      {
+        "seed": 42,
+        "selected_epoch": 5,
+        "val_macro_f1": 0.6758596836848664,
+        "test_macro_f1": 0.7301223736654658,
+        "test_cred_f1": 0.8711111111111111,
+        "test_recon_f1": 0.8841463414634146,
+        "test_t1_f1": 0.697508896797153,
+        "cred_breakdown": {
+          "Benign": 7,
+          "Reconnaissance": 0,
+          "Credential Access": 98,
+          "Initial Access": 0,
+          "Lateral Movement": 7,
+          "Impact": 0
+        }
+      },
+      {
+        "seed": 123,
+        "selected_epoch": 12,
+        "val_macro_f1": 0.584311175915524,
+        "test_macro_f1": 0.4705008639517992,
+        "test_cred_f1": 0.0,
+        "test_recon_f1": 0.8597014925373134,
+        "test_t1_f1": 0.8422971741112124,
+        "cred_breakdown": {
+          "Benign": 112,
+          "Reconnaissance": 0,
+          "Credential Access": 0,
+          "Initial Access": 0,
+          "Lateral Movement": 0,
+          "Impact": 0
+        }
+      },
+      {
+        "seed": 456,
+        "selected_epoch": 3,
+        "val_macro_f1": 0.6305363199745417,
+        "test_macro_f1": 0.7289800298755141,
+        "test_cred_f1": 0.8796296296296297,
+        "test_recon_f1": 0.8158640226628895,
+        "test_t1_f1": 0.8836424957841484,
+        "cred_breakdown": {
+          "Benign": 15,
+          "Reconnaissance": 0,
+          "Credential Access": 95,
+          "Initial Access": 0,
+          "Lateral Movement": 2,
+          "Impact": 0
+        }
+      },
+      {
+        "seed": 789,
+        "selected_epoch": 8,
+        "val_macro_f1": 0.6230739650033619,
+        "test_macro_f1": 0.5926305312451221,
+        "test_cred_f1": 0.0,
+        "test_recon_f1": 0.8200589970501475,
+        "test_t1_f1": 0.8444846292947559,
+        "cred_breakdown": {
+          "Benign": 105,
+          "Reconnaissance": 0,
+          "Credential Access": 0,
+          "Initial Access": 0,
+          "Lateral Movement": 0,
+          "Impact": 7
+        }
+      },
+      {
+        "seed": 2024,
+        "selected_epoch": 6,
+        "val_macro_f1": 0.5484739645489597,
+        "test_macro_f1": 0.529396840745726,
+        "test_cred_f1": 0.0,
+        "test_recon_f1": 0.7962382445141066,
+        "test_t1_f1": 0.7350835322195705,
+        "cred_breakdown": {
+          "Benign": 106,
+          "Reconnaissance": 0,
+          "Credential Access": 0,
+          "Initial Access": 0,
+          "Lateral Movement": 6,
+          "Impact": 0
+        }
+      }
+    ]
+  }
+}

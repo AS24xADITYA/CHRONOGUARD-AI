@@ -37,7 +37,7 @@ Raw Telemetry (CIC-IDS-2017)
 [Data Sanitizer] ── Clean whitespace, drop NaN/Inf, deduplicate SPAN mirrors
   │
   ▼
-[Chronological Chunk Sampler] ── Mon-Wed (Train) | Thu-Fri (Out-of-Sample Test)
+[Chronological Chunk Sampler] ── 65% Train | 10% Val | 25% Test (Per File)
   │
   ▼
 [Sliding Flow Aggregator] ── Fixed-size buckets (W=10 flows, step=1)
@@ -63,9 +63,10 @@ ChronoGuard is trained and evaluated on raw capture extracts from the **Canadian
 #### B. Zero-Data-Leakage Chronological Partitioning
 In temporal sequence forecasting, standard random $k$-fold cross-validation or random train-test splitting introduces **catastrophic future-to-past data leakage** (look-ahead bias): future session statistics bleed into the training set.
 
-ChronoGuard enforces strict chronological partitioning:
-- **Training Set**: Telemetry from **Monday through Wednesday** (establishes baseline benign profiles, brute-force credential patterns, and DoS volumetric transitions).
-- **Test Set**: Telemetry from **Thursday and Friday** (out-of-sample evaluation on unseen zero-day variants, infiltration mechanics, port scans, and botnet sequences).
+ChronoGuard enforces strict chronological partitioning across all daily captures:
+- **Training Set (Earliest 65%)**: Establishes baseline benign profiles, credential attacks, and DoS volumetric transitions across all capture days without lookahead bias.
+- **Validation Set (Subsequent 10%)**: Independent chronological slice used exclusively for validation monitoring and checkpoint selection.
+- **Test Set (Final 25%)**: Strictly untouched holdout evaluating out-of-sample temporal generalization and multi-horizon escalation forecasting across all 6 stages.
 
 #### C. Ingestion Sanitization
 The raw flow extractor outputs 83 raw statistical columns with numerous real-world anomalies handled by `src/data/clean.py`:
@@ -99,9 +100,9 @@ Raw packet headers contain static indicators (IPs, port numbers) that cause mode
 | 15 | `ack_flag_count_sum` | $\sum \mathbb{I}_{\text{ACK}}$ TCP acknowledgments | Asymmetry ratio between SYN/ACK indicating scans |
 
 #### Normalization:
-A `RobustScaler` is trained solely on benign training windows to map features by their interquartile range ($IQR = Q_3 - Q_1$), followed by outlier clamping at $5\sigma$:
-$$z = \text{clip}\left(\frac{x - \text{median}(X)}{Q_3(X) - Q_1(X)}, -5.0, 5.0\right)$$
-This prevents extreme DDoS volume spikes from skewing recurrent weight gradients during backpropagation.
+A `RobustScaler` is trained on the full training partition (all classes) to preserve attack-feature dynamic range (preventing attack-class features from artificially saturating at the $\pm 5\sigma$ clipping boundaries as occurred when fit solely on benign flows). Features are normalized using their interquartile range ($IQR = Q_3 - Q_1$), followed by outlier clamping at $5\sigma$:
+$$z = \text{clip}\left(\frac{x - \text{median}(X_{\text{train}})}{Q_3(X_{\text{train}}) - Q_1(X_{\text{train}})}, -5.0, 5.0\right)$$
+This prevents extreme volumetric DDoS outliers from distorting recurrent gradients while preserving high-contrast separation across distinct attack families.
 
 ---
 
@@ -201,38 +202,91 @@ A deep learning model in a Security Operations Center (SOC) is useless if treate
 
 ### 6. Empirical Evaluation & Scientific Benchmarking
 
-ChronoGuard was evaluated against an $L_2$-regularized **Multinomial Logistic Regression baseline** trained on the identical feature space. Both models were tested on $N = 1,062$ unseen sequence windows extracted from the held-out Thursday & Friday test split.
+ChronoGuard was evaluated against an $L_2$-regularized **Multinomial Logistic Regression baseline** trained on the identical 16-dimensional feature space. Both models were trained and tested using a strict, leak-free **3-way chronological split (65% Train / 10% Validation / 25% Test)** across all daily captures of CIC-IDS-2017, guaranteeing zero future lookahead leakage while ensuring representation of all 6 MITRE ATT&CK stages. Both models were evaluated on $N = 1,805$ unseen sequence windows across **5 independent random seeds** (42, 123, 456, 789, 2024) using full-training `RobustScaler` normalization with $5\sigma$ clipping. All reported metrics represent empirical **Mean ± Standard Deviation** across the 5 evaluation seeds.
 
-#### Test Set Class Distribution ($N = 1,062$ Windows):
-- **Benign**: 610 windows (57.44%)
-- **Impact**: 125 windows (11.77%)
-- **Reconnaissance**: 121 windows (11.39%)
-- **Initial Access**: 106 windows (9.98%)
-- **Lateral Movement**: 100 windows (9.42%)
-- **Credential Access**: 0 windows (0.00% in Thursday-Friday test split)
+#### Test Set Class Distribution ($N = 1,805$ Windows):
+- **Benign**: 1,202 windows (66.59%)
+- **Reconnaissance**: 150 windows (8.31%)
+- **Credential Access**: 112 windows (6.20%)
+- **Initial Access**: 27 windows (1.50%)
+- **Lateral Movement**: 24 windows (1.33%)
+- **Impact**: 290 windows (16.07%)
 
-*(Note on Class Balance: While raw packet captures on the wire contain >90% benign traffic, the windowed evaluation dataset utilizes balanced chunk-sampling across daily captures to ensure attack tools are adequately represented rather than completely suppressed).*
+*(Methodological Note on Class Distribution: The per-file chronological split samples the earliest 65% of each daily capture for training, the subsequent 10% for validation/early stopping, and reserves the final 25% exclusively for final evaluation, strictly preventing temporal data leakage while reflecting real operational flow distributions).*
 
-#### Benchmark Comparison Table (Exact Unedited Metrics):
+#### Benchmark Comparison Table (5-Seed Empirical Mean ± Std):
 
 | Evaluation Metric | Multinomial Logistic Regression (Baseline) | ChronoGuard (LSTM + Attention) | Architectural Analysis / Real-World Implication |
 |---|---|---|---|
-| **Attack Detection Horizon $t+1$ Accuracy** | 54.05% | **64.03%** | **+9.98%**; LSTM temporal context catches build-up ahead of time |
-| **Attack Detection Horizon $t+1$ F1 Score** | 22.40% | **56.09%** | **+33.69%**; Significant reduction in missed attack transitions |
-| **Attack Detection Horizon $t+2$ Accuracy** | N/A (Static) | **63.75%** | Graceful multi-step decay across 2 windows ahead |
-| **Attack Detection Horizon $t+2$ F1 Score** | N/A (Static) | **56.00%** | Sustained predictive lead time before stage execution |
-| **Attack Detection Horizon $t+3$ Accuracy** | N/A (Static) | **63.65%** | Long-range temporal sequence forecasting across 3 windows |
-| **Attack Detection Horizon $t+3$ F1 Score** | N/A (Static) | **56.14%** | Stable early-warning horizon |
-| **Benign Stage F1 Score** | 82.77% | 65.29% | Baseline achieves high benign F1 by collapsing to majority class |
-| **Overall Multi-Class Accuracy** | 54.05% | 37.76% | Baseline predicts Benign on 96.6% of flows; LSTM trades precision for recall |
-| **Overall Multi-Class Macro F1** | 13.79% | 13.53% | Reflects extreme difficulty of 6-way fine-grained stage boundary separation |
-| **False Positive Rate (FPR)** | **5.90%** | 35.41% | Linear baseline rarely alerts; LSTM alerts proactively |
-| **False Negative Rate (FNR)** | 44.91% | 44.91% | Shared bottleneck on stealthy encrypted sessions |
-| **Inference Latency (CPU)** | 0.8 ms / window | **11.4 ms / window** | Real-time wire speed on standard commodity CPU |
-| **Model Footprint** | 4.2 KB | **297 KB** | Completely self-contained in CPU RAM |
+| **Attack Escalation Horizon $t+1$ Accuracy** | N/A (Static Single-Window) | **86.25% ± 6.17%** | Proactive temporal escalation forecasting 1 window ahead |
+| **Attack Escalation Horizon $t+1$ F1 Score** | N/A (Static Single-Window) | **80.06% ± 7.14%** | Early warning capability before attack execution completes (Range: 69.75%–88.36%) |
+| **Attack Escalation Horizon $t+2$ Accuracy** | N/A (Static Single-Window) | **86.15% ± 5.58%** | Sustained multi-step predictive forecasting across 2 windows |
+| **Attack Escalation Horizon $t+2$ F1 Score** | N/A (Static Single-Window) | **79.82% ± 6.26%** | Stable detection lead time for automated mitigation triggers |
+| **Attack Escalation Horizon $t+3$ Accuracy** | N/A (Static Single-Window) | **85.47% ± 5.31%** | Long-range temporal forecasting across 3 full windows |
+| **Attack Escalation Horizon $t+3$ F1 Score** | N/A (Static Single-Window) | **78.80% ± 5.74%** | Deep temporal lookahead for security operations triage |
+| **Overall Multi-Class Stage Accuracy** | 74.74% | **79.87% ± 8.07%** | ChronoGuard achieves higher mean accuracy with temporal sequence context |
+| **Overall Multi-Class Macro F1** | 57.43% | **61.03% ± 10.47%** | Macro F1 range: 47.05% – 73.01% (varies by minority stage convergence) |
+| **False Positive Rate (FPR)** | 25.21% | **19.98% ± 13.66%** | Temporal aggregation suppresses transient burst false alarms |
+| **False Negative Rate (FNR)** | 21.39% | **15.85% ± 9.01%** | Lower miss rate on multi-window threat escalations |
+| **Benign Stage F1 Score** | 80.63% | **84.55% ± 7.34%** | High benign discrimination across normal operational traffic |
+| **Reconnaissance Stage F1 Score** | 83.38% | **83.52% ± 3.20%** | Both models achieve high fidelity (~83.5%) when features are scaled robustly |
+| **Credential Access Stage F1 Score** | 0.00% | **35.01% ± 42.89%** | Baseline scores 0.00% (FTP vs SSH split); LSTM succeeds in 2/5 seeds (87–88% F1), fails in 3/5 (0.00% F1) |
+| **Initial Access Stage F1 Score** | **82.61%** | 66.69% ± 30.71% | 4 of 5 seeds achieve ~82% F1; Seed 123 (Ep 12) collapses to Benign (6.9% F1) |
+| **Lateral Movement Stage F1 Score** | 0.00% | 0.00% ± 0.00% | 0.00% F1 for both models: hard feature-separability ceiling without DPI/payload data |
+| **Impact Stage F1 Score** | **97.96%** | 96.42% ± 1.11% | Near-perfect detection of high-velocity volumetric DoS/DDoS floods by both models |
+| **Inference Latency (CPU, N=1,000 runs)** | **0.20 ms ± 0.07 ms** | **0.94 ms ± 0.29 ms** (P99: 1.68 ms) | Sub-millisecond wire-speed execution on standard commodity CPU (Batch=64: 0.04 ms/window) |
+| **Model Footprint (Disk)** | **11.0 KB** | **304.3 KB** (75,945 params) | Fully self-contained edge deployment with zero cloud dependencies |
 
-The accuracy-vs-horizon stability curve is recorded in `results/forecast_horizon.png`, demonstrating consistent detection across horizons $t+1$ through $t+3$.
+#### Critical Empirical Findings & Architectural Diagnoses
 
+> [!IMPORTANT]
+> **1. True Headline Finding: Binary Escalation Forecasting across Future Horizons ($t+1 \dots t+3$)**
+>
+> The definitive, empirically validated strength of ChronoGuard is **binary multi-horizon attack escalation forecasting**:
+> - At horizon $t+1$, ChronoGuard achieves **80.06% ± 7.14% F1** (Accuracy: **86.25% ± 6.17%**, Range: 69.75% – 88.36%) across all 5 seeds.
+> - At horizon $t+2$, performance remains rock-solid at **79.82% ± 6.26% F1** (Accuracy: **86.15% ± 5.58%**).
+> - At horizon $t+3$, lookahead performance holds at **78.80% ± 5.74% F1** (Accuracy: **85.47% ± 5.31%**).
+>
+> Static single-window models (like Logistic Regression, Random Forests, or XGBoost) are **fundamentally incapable of future lookahead forecasting** because they lack temporal recurrence. ChronoGuard's dual-layer LSTM and self-attention mechanism successfully aggregate historical flow trajectories ($W=10$ past windows) to alert SOC analysts that an attack is actively building 1 to 3 time steps before execution completes.
+
+> [!NOTE]
+> **2. Credential Access: The FTP/SSH Protocol Split and Bimodal Generalization**
+>
+> In the chronological 65/10/25 split of Tuesday traffic:
+> - **Training Set (first 65%)**: Contains 5,931 FTP-Patator flows and only 16 SSH-Patator flows.
+> - **Test Set (final 25%)**: Contains 2,288 SSH-Patator flows (112 window sequences) and 0 FTP-Patator flows.
+>
+> Because FTP (port 21) transmits plain-text commands with distinct packet sizes while SSH (port 22) uses encrypted ciphertexts with uniform packet distributions, the **static linear baseline scores exactly 0.00% F1**, misclassifying 95.5% (107 of 112) of SSH sequences as **Benign**.
+>
+> In contrast, the ChronoGuard LSTM displays **bimodal cross-protocol generalization**:
+> - In **2 of 5 seeds** (Seed 42: 87.11% F1; Seed 456: 87.96% F1), the model successfully generalizes across protocols, identifying 85–88% of SSH sequences by learning temporal connection-retry cadences (IAT periodicity and SYN/RST ratios) that are protocol-agnostic.
+> - In **3 of 5 seeds** (Seeds 123, 789, 2024), the model fails completely (**0.00% F1**), with 94%–100% of SSH sequences collapsing into Benign—exactly like the baseline.
+> - Diagnostic analysis shows that successful seeds stopped early (Epochs 3 and 5) before cross-entropy gradients were overwhelmed by the majority class. Therefore, cross-protocol brute-force transfer is **not a guaranteed capability**, but a promising temporal mechanism subject to optimization sensitivity in small minority regimes.
+
+> [!NOTE]
+> **3. Initial Access (66.69% ± 30.71% F1) & Macro F1 Variance Diagnosis**
+>
+> Across the $N = 27$ held-out Initial Access test sequences (Heartbleed and Web Attacks):
+> - In **4 of 5 seeds** (Seeds 42, 456, 789, 2024), the LSTM demonstrates strong generalization, averaging **81.6% F1** (Seeds 42, 456, and 789 cluster tightly at 88.5%, 85.2%, and 84.6% F1 with 82–85% detection rates).
+> - In **1 of 5 seeds** (Seed 123), performance collapses to **6.90% F1**, with 81.5% (22 of 27) of sequences misclassified as **Benign**.
+> - This mirrors the Credential Access dynamic: Seed 123 stopped late at **Epoch 12**, where prolonged cross-entropy optimization against a large benign majority eroded minority stage decision boundaries.
+> - **Crucial Takeaway on Variance**: Initial Access and Credential Access are the **sole drivers** of the 10.47% standard deviation in overall Macro F1 (61.03% ± 10.47%). In contrast, high-volume stages remain remarkably stable across all 5 seeds: Reconnaissance achieves **83.52% ± 3.20% F1** and Impact achieves **96.42% ± 1.11% F1**.
+
+> [!WARNING]
+> **4. Lateral Movement: Confirmed Feature-Separability Ceiling**
+>
+> On **Lateral Movement** (CIC-IDS-2017 Infiltration and Botnet C2 beaconing), **both the Baseline and the ChronoGuard LSTM score exactly 0.00% F1 across all 5 seeds**.
+> This is a confirmed, insurmountable **feature-separability ceiling**: in a purely statistical 16-dimensional flow-metadata space without Deep Packet Inspection (DPI), DNS telemetry, or HTTP URI/payload inspection, low-frequency C2 beaconing is statistically indistinguishable from legitimate background web browsing. Acknowledging this limitation is critical for honest engineering: host-level or payload-level telemetry is strictly required to detect stealthy C2 channels.
+
+> [!TIP]
+> **5. Normalization Sensitivity: StandardScaler vs. RobustScaler**
+>
+> Normalization choice dramatically alters stage classification:
+> - Under `StandardScaler`, PortScan (Reconnaissance) variance was compressed to $\sigma \approx 0.10$ due to benign bandwidth outliers, collapsing Reconnaissance F1 to 0.00%.
+> - Under `RobustScaler` (Median + IQR with $5\sigma$ clipping fitted on the full training set), Reconnaissance F1 jumped to **83.38%** for the baseline and **83.52% ± 3.20%** for the LSTM.
+> - Across scaler configurations, overall Macro F1 ranges honestly between **47.7% and 61.0%**, demonstrating that data preprocessing and scaling fidelity are as consequential as neural architecture choices in network intrusion pipelines.
+
+The accuracy-vs-horizon stability curve is recorded in `results/forecast_horizon.png`, illustrating consistent predictive accuracy across horizons $t+1$ through $t+3$.
 ---
 
 ### 7. Systems & Software Engineering Architecture

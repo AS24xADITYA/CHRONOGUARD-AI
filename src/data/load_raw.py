@@ -65,73 +65,71 @@ def load_raw_dataset(
     split: Optional[str] = None,
     sample_per_file: Optional[int] = None,
     selected_features: Optional[List[str]] = None,
+    train_ratio: float = 0.75,
 ) -> pd.DataFrame:
-    """Load multiple raw files and concatenate into a single DataFrame.
+    """Load raw capture files and construct chronological train/test splits.
+    
+    Implements a per-file chronological split (first 75% train, last 25% test)
+    across all daily captures. This guarantees every MITRE ATT&CK class that
+    occurs in the dataset appears in both splits, while strictly preserving
+    the chronological sequence of network flows without future look-ahead leakage.
     
     Args:
         raw_dir: Directory containing raw CSV files
-        split: 'train' (Mon-Wed), 'test' (Thu-Fri), or None (all files)
-        sample_per_file: Optional max rows to sample per file (for CPU feasibility)
+        split: 'train' (first 75% of each session), 'test' (last 25%), or None (full)
+        sample_per_file: Optional max rows to sample per class to ensure balance
         selected_features: Features to preserve and clean
+        train_ratio: Chronological partition point (default 0.75)
     """
+    from src.data.label_mapping import map_label_to_stage
+
     all_files = find_raw_files(raw_dir)
     if not all_files:
         raise FileNotFoundError(f"No CSV files found in {raw_dir}")
 
-    target_files = []
-    if split in ("train", "test"):
-        allowed_names = DAY_CATEGORIES[split]
-        for f in all_files:
-            if any(name.lower() in os.path.basename(f).lower() for name in allowed_names):
-                target_files.append(f)
-    else:
-        target_files = all_files
-
-    if not target_files:
-        target_files = all_files
-
     dfs = []
-    for f in target_files:
+    for f in all_files:
         basename = os.path.basename(f)
         try:
-            if sample_per_file is not None:
-                # Balanced sampling to ensure attack patterns are captured
-                max_b = sample_per_file // 2
-                max_a = sample_per_file // 2
-                benign_chunks = []
-                attack_chunks = []
-                
-                for chunk in pd.read_csv(
-                    f,
-                    chunksize=25000,
-                    low_memory=False,
-                    encoding="utf-8",
-                    encoding_errors="replace",
-                ):
-                    lbl_col = [c for c in chunk.columns if "label" in c.lower()][0]
-                    b = chunk[chunk[lbl_col].astype(str).str.strip() == "BENIGN"]
-                    a = chunk[chunk[lbl_col].astype(str).str.strip() != "BENIGN"]
-                    
-                    curr_b = sum(len(x) for x in benign_chunks)
-                    if len(b) > 0 and curr_b < max_b:
-                        benign_chunks.append(b.head(max_b - curr_b))
-                        
-                    curr_a = sum(len(x) for x in attack_chunks)
-                    if len(a) > 0 and curr_a < max_a:
-                        attack_chunks.append(a.head(max_a - curr_a))
-                        
-                    if sum(len(x) for x in benign_chunks) >= max_b and sum(len(x) for x in attack_chunks) >= max_a:
-                        break
-                        
-                combined_slices = benign_chunks + attack_chunks
-                if combined_slices:
-                    df = pd.concat(combined_slices).sort_index()
-                else:
-                    df = pd.read_csv(f, nrows=sample_per_file, low_memory=False, encoding="utf-8", encoding_errors="replace")
-            else:
-                df = pd.read_csv(f, low_memory=False, encoding="utf-8", encoding_errors="replace")
-
+            df = pd.read_csv(f, low_memory=False, encoding="utf-8", encoding_errors="replace")
             df = clean_dataframe(df, selected_features=selected_features)
+            
+            lbl_cols = [c for c in df.columns if "label" in c.lower()]
+            if not lbl_cols:
+                continue
+            lbl_col = lbl_cols[0]
+            df["stage"] = df[lbl_col].astype(str).str.strip().apply(map_label_to_stage)
+
+            if split in ("train", "val", "test"):
+                file_parts = []
+                for stage_name, grp in df.groupby("stage", sort=False):
+                    n = len(grp)
+                    n_tr = int(n * 0.65)
+                    n_val = int(n * 0.75)
+                    
+                    if split == "train":
+                        part = grp.iloc[:n_tr]
+                        max_tr = int(sample_per_file * 0.30) if sample_per_file else None
+                        if max_tr and len(part) > max_tr:
+                            part = part.head(max_tr)
+                    elif split == "val":
+                        part = grp.iloc[n_tr:n_val]
+                        max_val = int(sample_per_file * 0.05) if sample_per_file else None
+                        if max_val and len(part) > max_val:
+                            part = part.head(max_val)
+                    else:  # test (final 25%)
+                        part = grp.iloc[n_val:]
+                        max_te = int(sample_per_file * 0.12) if sample_per_file else None
+                        if max_te and len(part) > max_te:
+                            part = part.head(max_te)
+                            
+                    file_parts.append(part)
+                    
+                if file_parts:
+                    df = pd.concat(file_parts).sort_index()
+                else:
+                    df = df.iloc[:0]
+                    
             df["source_file"] = basename
             dfs.append(df)
         except Exception as e:

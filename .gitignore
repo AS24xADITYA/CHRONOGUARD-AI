@@ -19,9 +19,16 @@ data/processed/
 # Preserve demo samples
 !data/samples/
 
-# SQLite Instance database & runtime uploads
+# SQLite Database & Runtime files
 instance/
 *.sqlite3
+*.db
+
+# Temporary & Local Logs
+*.log
+scratch/
+.tempmediaStorage/
+.user_uploaded/
 
 # OS / Editor files
 .DS_Store
@@ -30,7 +37,7 @@ Thumbs.db
 .idea/
 *.swp
 
-# Build / Egg metadata
+# Build / Distribution
 dist/
 build/
 *.egg-info/

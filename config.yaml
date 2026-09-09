@@ -4,6 +4,7 @@ dataset:
   raw_dir: "data/raw"
   processed_dir: "data/processed"
   samples_dir: "data/samples"
+  sample_per_file: 25000
   selected_features:
     - "Total Fwd Packets"
     - "Total Backward Packets"
@@ -40,7 +41,7 @@ model:
   num_stages: 6
   learning_rate: 0.001
   batch_size: 64
-  epochs: 15
+  epochs: 20
   random_seed: 42
   bce_loss_weight: 1.0
   ce_loss_weight: 1.0

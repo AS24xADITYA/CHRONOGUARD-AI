@@ -57,6 +57,7 @@ class ChronoGuardLSTM(nn.Module):
         dropout: float = 0.2,
         forecast_horizon_k: int = 3,
         num_stages: int = 6,
+        use_max_pool: bool = False,
     ):
         super().__init__()
         self.input_dim = input_dim
@@ -64,6 +65,7 @@ class ChronoGuardLSTM(nn.Module):
         self.num_layers = num_layers
         self.forecast_horizon_k = forecast_horizon_k
         self.num_stages = num_stages
+        self.use_max_pool = use_max_pool
 
         # 1. Feature Projection
         self.input_proj = nn.Sequential(
@@ -84,10 +86,13 @@ class ChronoGuardLSTM(nn.Module):
         # 3. Self-Attention Pooling (Explainability Hook)
         self.attention_pool = SelfAttentionPooling(hidden_dim=hidden_dim, attention_dim=32)
 
+        # Dimension entering the classification heads
+        head_in_dim = hidden_dim * 2 if use_max_pool else hidden_dim
+
         # 4. Multi-Task Output Heads
         # Infiltration probability across K future horizons
         self.prob_head = nn.Sequential(
-            nn.Linear(hidden_dim, 32),
+            nn.Linear(head_in_dim, 32),
             nn.ReLU(),
             nn.Linear(32, forecast_horizon_k),
             nn.Sigmoid(),
@@ -95,7 +100,7 @@ class ChronoGuardLSTM(nn.Module):
 
         # MITRE stage classification head (raw logits for CrossEntropyLoss)
         self.stage_head = nn.Sequential(
-            nn.Linear(hidden_dim, 32),
+            nn.Linear(head_in_dim, 32),
             nn.ReLU(),
             nn.Linear(32, num_stages),
         )
@@ -123,9 +128,16 @@ class ChronoGuardLSTM(nn.Module):
         # Explainable Attention Pooling
         context, attention_weights = self.attention_pool(lstm_out)
         
+        # Optional Max-Pooling branch for sharp volumetric spikes
+        if self.use_max_pool:
+            max_pooled, _ = torch.max(lstm_out, dim=1)
+            pooled = torch.cat([context, max_pooled], dim=-1)
+        else:
+            pooled = context
+        
         # Heads
-        prob_forecast = self.prob_head(context)
-        stage_logits = self.stage_head(context)
+        prob_forecast = self.prob_head(pooled)
+        stage_logits = self.stage_head(pooled)
         
         return prob_forecast, stage_logits, attention_weights
 
@@ -133,7 +145,7 @@ class ChronoGuardLSTM(nn.Module):
     def predict_step(
         self, x: torch.Tensor
     ) -> Dict[str, Any]:
-        """Inference helper for a single sequence or batch."""
+        """Single-sequence inference method for real-time web deployment."""
         self.eval()
         if x.dim() == 2:
             x = x.unsqueeze(0)

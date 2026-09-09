@@ -1,68 +1,48 @@
 {
-  "model_name": "ChronoGuard LSTM Forecaster",
-  "accuracy": 0.3776,
-  "precision": 0.135,
-  "recall": 0.1404,
-  "f1_score": 0.1353,
-  "false_positive_rate": 0.3541,
-  "false_negative_rate": 0.4491,
-  "total_test_samples": 1062,
+  "accuracy": 0.7987000000000001,
+  "macro_f1": 0.6103000000000001,
+  "f1_score": 0.6103000000000001,
+  "false_positive_rate": 0.1998,
+  "false_negative_rate": 0.1585,
+  "total_test_samples": 1805,
   "k_step_forecast": {
     "horizon_t+1": {
-      "accuracy": 0.6403,
-      "f1_score": 0.5609
+      "accuracy": 0.8625,
+      "f1_score": 0.8006
     },
     "horizon_t+2": {
-      "accuracy": 0.6375,
-      "f1_score": 0.56
+      "accuracy": 0.8615,
+      "f1_score": 0.7981999999999999
     },
     "horizon_t+3": {
-      "accuracy": 0.6365,
-      "f1_score": 0.5614
+      "accuracy": 0.8547,
+      "f1_score": 0.7879999999999999
     }
-  },
-  "confusion_matrix": {
-    "true_negatives": 394,
-    "false_positives": 216,
-    "false_negatives": 203,
-    "true_positives": 249
   },
   "per_stage": {
     "Benign": {
-      "precision": 0.66,
-      "recall": 0.6459,
-      "f1_score": 0.6529,
-      "support": 610
+      "f1_score": 0.8454999999999999,
+      "support": 1202
     },
     "Reconnaissance": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1_score": 0.0,
-      "support": 121
+      "f1_score": 0.8351999999999999,
+      "support": 150
     },
     "Credential Access": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1_score": 0.0,
-      "support": 0
+      "f1_score": 0.35009999999999997,
+      "support": 112
     },
     "Initial Access": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1_score": 0.0,
-      "support": 106
+      "f1_score": 0.6668999999999999,
+      "support": 27
     },
     "Lateral Movement": {
-      "precision": 0.0,
-      "recall": 0.0,
       "f1_score": 0.0,
-      "support": 100
+      "support": 24
     },
     "Impact": {
-      "precision": 0.0151,
-      "recall": 0.056,
-      "f1_score": 0.0237,
-      "support": 125
+      "f1_score": 0.9642000000000001,
+      "support": 290
     }
   }
 }

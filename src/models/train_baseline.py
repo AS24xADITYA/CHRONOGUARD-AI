@@ -52,6 +52,9 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, Any]:
     fpr = float(fp / (fp + tn)) if (fp + tn) > 0 else 0.0
     fnr = float(fn / (fn + tp)) if (fn + tp) > 0 else 0.0
 
+    # Full 6x6 stage confusion matrix
+    stage_cm = confusion_matrix(y_true, y_pred, labels=list(range(len(STAGE_NAMES)))).tolist()
+
     # Per-stage breakdown
     report = classification_report(
         y_true,
@@ -65,7 +68,7 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, Any]:
     return {
         "model_name": "Logistic Regression Baseline",
         "accuracy": round(acc, 4),
-        "precision": round(rec, 4),    # macro
+        "precision": round(prec, 4),    # macro
         "recall": round(rec, 4),
         "f1_score": round(f1, 4),
         "false_positive_rate": round(fpr, 4),
@@ -76,6 +79,10 @@ def compute_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, Any]:
             "false_positives": int(fp),
             "false_negatives": int(fn),
             "true_positives": int(tp),
+        },
+        "stage_confusion_matrix": {
+            "classes": STAGE_NAMES,
+            "matrix": stage_cm,
         },
         "per_stage": {
             stage: {
@@ -98,6 +105,7 @@ def train_baseline(
         cfg = yaml.safe_load(f)
 
     raw_dir = cfg["dataset"]["raw_dir"]
+    sample_per_file = cfg.get("dataset", {}).get("sample_per_file", sample_per_file)
     selected_features = cfg["dataset"]["selected_features"]
     window_size_flows = cfg["windowing"]["window_size_flows"]
     seq_w = cfg["windowing"]["sequence_length_w"]

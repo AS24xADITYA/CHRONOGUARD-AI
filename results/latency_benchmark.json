@@ -1,0 +1,31 @@
+{
+  "model_footprint": {
+    "baseline_lr_pkl_bytes": 11247,
+    "baseline_lr_pkl_kb": 11.0,
+    "chronoguard_lstm_pt_bytes": 311575,
+    "chronoguard_lstm_pt_kb": 304.3,
+    "scaler_pkl_bytes": 1055,
+    "scaler_pkl_kb": 1.0,
+    "lstm_parameters": 75945
+  },
+  "single_window_latency_ms": {
+    "baseline": {
+      "mean": 0.196,
+      "std": 0.069,
+      "median": 0.165,
+      "p95": 0.306,
+      "p99": 0.406
+    },
+    "lstm": {
+      "mean": 0.939,
+      "std": 0.293,
+      "median": 0.979,
+      "p95": 1.459,
+      "p99": 1.678
+    }
+  },
+  "batch_latency_ms_per_window": {
+    "baseline": 0.005,
+    "lstm": 0.041
+  }
+}

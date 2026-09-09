@@ -1,54 +1,34 @@
 {
-  "model_name": "Logistic Regression Baseline",
-  "accuracy": 0.5405,
-  "precision": 0.1568,
-  "recall": 0.1568,
-  "f1_score": 0.1379,
-  "false_positive_rate": 0.059,
-  "false_negative_rate": 0.4491,
-  "total_test_samples": 1062,
-  "confusion_matrix": {
-    "true_negatives": 574,
-    "false_positives": 36,
-    "false_negatives": 203,
-    "true_positives": 249
-  },
+  "accuracy": 0.7474,
+  "macro_f1": 0.5743,
+  "f1_score": 0.5743,
+  "false_positive_rate": 0.2521,
+  "false_negative_rate": 0.2139,
+  "total_test_samples": 1805,
   "per_stage": {
     "Benign": {
-      "precision": 0.7387,
-      "recall": 0.941,
-      "f1_score": 0.8277,
-      "support": 610
+      "f1_score": 0.8062999999999999,
+      "support": 1202
     },
     "Reconnaissance": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1_score": 0.0,
-      "support": 121
+      "f1_score": 0.8338,
+      "support": 150
     },
     "Credential Access": {
-      "precision": 0.0,
-      "recall": 0.0,
       "f1_score": 0.0,
-      "support": 0
+      "support": 112
     },
     "Initial Access": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1_score": 0.0,
-      "support": 106
+      "f1_score": 0.8261,
+      "support": 27
     },
     "Lateral Movement": {
-      "precision": 0.0,
-      "recall": 0.0,
       "f1_score": 0.0,
-      "support": 100
+      "support": 24
     },
     "Impact": {
-      "precision": 0.0,
-      "recall": 0.0,
-      "f1_score": 0.0,
-      "support": 125
+      "f1_score": 0.9795999999999999,
+      "support": 290
     }
   }
 }

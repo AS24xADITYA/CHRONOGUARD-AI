@@ -1,0 +1,129 @@
+{
+  "accuracy": 0.8537,
+  "precision": 0.691,
+  "recall": 0.6792,
+  "f1_score": 0.6687,
+  "false_positive_rate": 0.0449,
+  "false_negative_rate": 0.2819,
+  "total_test_samples": 1805,
+  "k_step_forecast": {
+    "horizon_t+1": {
+      "accuracy": 0.8776,
+      "f1_score": 0.7944
+    },
+    "horizon_t+2": {
+      "accuracy": 0.8726,
+      "f1_score": 0.7858
+    },
+    "horizon_t+3": {
+      "accuracy": 0.8665,
+      "f1_score": 0.7758
+    }
+  },
+  "confusion_matrix": {
+    "true_negatives": 1148,
+    "false_positives": 54,
+    "false_negatives": 170,
+    "true_positives": 433
+  },
+  "stage_confusion_matrix": {
+    "classes": [
+      "Benign",
+      "Reconnaissance",
+      "Credential Access",
+      "Initial Access",
+      "Lateral Movement",
+      "Impact"
+    ],
+    "matrix": [
+      [
+        1148,
+        42,
+        2,
+        6,
+        0,
+        4
+      ],
+      [
+        6,
+        131,
+        13,
+        0,
+        0,
+        0
+      ],
+      [
+        13,
+        0,
+        98,
+        0,
+        0,
+        1
+      ],
+      [
+        3,
+        0,
+        0,
+        24,
+        0,
+        0
+      ],
+      [
+        9,
+        15,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        139,
+        7,
+        4,
+        0,
+        0,
+        140
+      ]
+    ]
+  },
+  "per_stage": {
+    "Benign": {
+      "precision": 0.871,
+      "recall": 0.9551,
+      "f1_score": 0.9111,
+      "support": 1202
+    },
+    "Reconnaissance": {
+      "precision": 0.6718,
+      "recall": 0.8733,
+      "f1_score": 0.7594,
+      "support": 150
+    },
+    "Credential Access": {
+      "precision": 0.8376,
+      "recall": 0.875,
+      "f1_score": 0.8559,
+      "support": 112
+    },
+    "Initial Access": {
+      "precision": 0.8,
+      "recall": 0.8889,
+      "f1_score": 0.8421,
+      "support": 27
+    },
+    "Lateral Movement": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 24
+    },
+    "Impact": {
+      "precision": 0.9655,
+      "recall": 0.4828,
+      "f1_score": 0.6437,
+      "support": 290
+    }
+  },
+  "model_name": "ChronoGuard LSTM Forecaster (Early Stopped @ Epoch 5)",
+  "stopping_epoch": 5
+}

@@ -107,6 +107,12 @@ def evaluate_lstm(
             "f1_score": round(step_f1, 4),
         }
 
+    stage_cm = confusion_matrix(
+        stage_targets,
+        stage_preds,
+        labels=list(range(len(STAGE_NAMES))),
+    ).tolist()
+
     report = classification_report(
         stage_targets,
         stage_preds,
@@ -132,6 +138,10 @@ def evaluate_lstm(
             "false_negatives": int(fn),
             "true_positives": int(tp),
         },
+        "stage_confusion_matrix": {
+            "classes": STAGE_NAMES,
+            "matrix": stage_cm,
+        },
         "per_stage": {
             stage: {
                 "precision": round(report[stage]["precision"], 4),
@@ -156,13 +166,14 @@ def train_lstm(
     device = torch.device("cpu")  # Strictly CPU per zero-cost constraints
 
     raw_dir = cfg["dataset"]["raw_dir"]
+    sample_per_file = cfg.get("dataset", {}).get("sample_per_file", sample_per_file)
     selected_features = cfg["dataset"]["selected_features"]
     window_size_flows = cfg["windowing"]["window_size_flows"]
     seq_w = cfg["windowing"]["sequence_length_w"]
     forecast_k = cfg["windowing"]["forecast_horizon_k"]
 
     batch_size = cfg["model"]["batch_size"]
-    epochs = cfg["model"]["epochs"]
+    epochs = cfg["model"].get("epochs", 20)
     lr = cfg["model"]["learning_rate"]
     hidden_dim = cfg["model"]["hidden_dim"]
     num_layers = cfg["model"]["num_layers"]
