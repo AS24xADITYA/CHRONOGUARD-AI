@@ -282,6 +282,17 @@ def health():
     })
 
 
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    """Handle uploads exceeding MAX_CONTENT_LENGTH (50MB)."""
+    if request.is_json or request.path.startswith("/upload"):
+        return jsonify({
+            "error": "File exceeds the 50 MB upload limit. Please upload a smaller flow slice or pre-sampled extract."
+        }), 413
+    flash("File exceeds the maximum allowed size of 50 MB.", "error")
+    return redirect(url_for("upload")), 413
+
+
 # ---------------------------------------------------------------------------
 # CLI Entrypoint
 # ---------------------------------------------------------------------------

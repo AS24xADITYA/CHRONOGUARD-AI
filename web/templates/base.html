@@ -34,9 +34,11 @@
 
   <!-- Custom SOC Theme & Animations -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/aos.css') }}">
 
-  <!-- Offline Vendored Chart.js & Alpine.js -->
+  <!-- Offline Vendored Chart.js & Alpine.js & AOS -->
   <script src="{{ url_for('static', filename='vendor/chart.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/aos.js') }}"></script>
   <script defer src="{{ url_for('static', filename='vendor/alpine.min.js') }}"></script>
 
   {% block head_extra %}{% endblock %}
@@ -105,6 +107,18 @@
 
   <!-- Scripts -->
   <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof AOS !== 'undefined') {
+        AOS.init({
+          duration: 500,
+          easing: 'ease-out-cubic',
+          once: true,
+          offset: 50
+        });
+      }
+    });
+  </script>
   {% block scripts_extra %}{% endblock %}
 </body>
 </html>

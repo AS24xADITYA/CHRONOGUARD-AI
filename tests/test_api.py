@@ -49,10 +49,12 @@ def test_history_page(client):
 
 def test_history_page_with_records(client):
     """Verify history audit log loads successfully with real job records."""
+    import uuid
     from src.db.models import AnalysisJob
+    job_id = f"test-job-{uuid.uuid4()}"
     with app.app_context():
         job = AnalysisJob(
-            id="test-job-uuid-1234",
+            id=job_id,
             original_filename="sample_capture.csv",
             status="done",
             total_windows=10,

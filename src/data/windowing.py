@@ -101,14 +101,23 @@ def bucket_flows_into_windows(
     """Bucket a cleaned DataFrame of flows into aggregated windows."""
     windows = []
     
-    # Check if Source IP is present for session grouping
-    has_ip = ip_col in df.columns
+    # Check if Source IP is present for session grouping (supports common aliases)
+    found_ip_col = None
+    if ip_col in df.columns:
+        found_ip_col = ip_col
+    else:
+        possible_ip_names = ["source ip", "src ip", "src_ip", "sourceip", "src_addr", "source_address", "src"]
+        for c in df.columns:
+            if c.strip().lower() in possible_ip_names:
+                found_ip_col = c
+                break
+
     has_time = time_col in df.columns
     
-    if has_ip:
-        groups = df.groupby(ip_col, sort=False)
+    if found_ip_col is not None:
+        groups = df.groupby(found_ip_col, sort=False)
     else:
-        # Fallback to single contiguous stream or destination port grouping
+        # Fallback to single contiguous chronological stream (e.g. CIC-IDS-2017 MachineLearningCSV where IPs were stripped)
         groups = [("all", df)]
         
     window_counter = 0
