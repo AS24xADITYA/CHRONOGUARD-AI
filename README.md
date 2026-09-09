@@ -114,10 +114,10 @@ Both ChronoGuard and an $L_2$-regularized **Multinomial Logistic Regression base
 
 ---
 
-## 5. Critical Scientific Findings & Honest Limitations
+## 5. Critical Empirical Findings & Architectural Scope
 
 1. **The Credential Access Protocol Split**:
-   Under the chronological split of Tuesday's data, the training partition contains 5,931 FTP-Patator flows (port 21, plain-text) and only 16 SSH-Patator flows, while the test set contains 2,288 SSH-Patator flows (port 22, encrypted). The static linear baseline scores **0.00% F1** (misclassifying 95.5% as Benign). ChronoGuard exhibits **bimodal generalization**: in 2 of 5 seeds (Seeds 42 & 456), it discovers the protocol-agnostic inter-arrival retry cadence, scoring **87–88% F1**; in 3 of 5 seeds, it collapses to Benign (0.0% F1). This is an honest empirical boundary: cross-protocol brute-force transfer is achievable via temporal modeling, but subject to optimization sensitivity.
+   Under the chronological split of Tuesday's data, the training partition contains 5,931 FTP-Patator flows (port 21, plain-text) and only 16 SSH-Patator flows, while the test set contains 2,288 SSH-Patator flows (port 22, encrypted). The static linear baseline scores **0.00% F1** (misclassifying 95.5% as Benign). ChronoGuard exhibits **bimodal generalization**: in 2 of 5 seeds (Seeds 42 & 456), it discovers the protocol-agnostic inter-arrival retry cadence, scoring **87–88% F1**; in 3 of 5 seeds, it collapses to Benign (0.0% F1). This is an empirical boundary: cross-protocol brute-force transfer is achievable via temporal modeling, but subject to optimization sensitivity.
 2. **The Lateral Movement Feature-Separability Ceiling**:
    Both the Baseline and ChronoGuard score **0.00% F1 across all 5 seeds** on Lateral Movement (Botnet C2 & Infiltration). In a purely statistical 16-feature flow-metadata space without Deep Packet Inspection (DPI) or HTTP URI/payload inspection, low-frequency C2 beaconing is statistically indistinguishable from background web traffic. Host-level or payload-level telemetry is strictly required to detect stealthy C2 channels.
 3. **RobustScaler vs. StandardScaler Normalization**:

@@ -368,9 +368,9 @@ To satisfy defense and SCADA requirements where production SOC networks have **z
 
 ---
 
-### 8. Architectural Rigor & Honest Limitations
+### 8. Architectural Rigor & Operational Boundaries
 
-ChronoGuard adheres to strict academic and engineering honesty:
+ChronoGuard is engineered under rigorous empirical and production principles:
 1. **Sequence Forecasting vs. Reinforcement Learning**: 
    ChronoGuard models $\mathbb{P}(\mathbf{y}_{t+k} \mid \mathbf{W}_t)$. It is a **predictive sequence forecaster**, not a generative agent or autonomous response simulator. It does not hallucinate dynamic attacker responses; it detects the statistical signature of temporal build-up.
 2. **Fixed-Size Sliding Windows**:
