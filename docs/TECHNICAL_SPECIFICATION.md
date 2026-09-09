@@ -5,7 +5,11 @@
 **ChronoGuard** is an open-source, zero-cost, air-gapped **temporal sequence forecasting engine** for network intrusion detection. 
 
 Traditional Network Intrusion Detection Systems (NIDS)—ranging from signature-based tools like Snort/Suricata to tree-based machine learning models (Random Forests, XGBoost) and deep feed-forward networks—treat network flows as **independent and identically distributed ($i.i.d.$)** samples. They evaluate traffic on a static, point-in-time basis:
-$$\hat{y}_t = f(\mathbf{x}_t)$$
+
+$$
+\hat{y}_t = f(\mathbf{x}_t)
+$$
+
 Where $\mathbf{x}_t$ is the feature vector of a single network flow at time $t$. 
 
 #### The Flaw of the Point-in-Time Paradigm:
@@ -16,12 +20,19 @@ Advanced Persistent Threats (APTs) and modern multi-stage adversaries execute at
 
 #### ChronoGuard’s Paradigm Shift:
 ChronoGuard reformulates network defense as a **stochastic sequence forecasting problem**:
-$$\mathbb{P}\left(\mathbf{y}_{t+k} \in \mathcal{C} \;\middle|\; \mathbf{W}_t = [\mathbf{x}_{t-W+1}, \dots, \mathbf{x}_t]\right)$$
+
+$$
+\mathbb{P}\left(\mathbf{y}_{t+k} \in \mathcal{C} \mid \mathbf{W}_t = [\mathbf{x}_{t-W+1}, \dots, \mathbf{x}_t]\right)
+$$
+
 Where:
 - $\mathbf{W}_t$ is a sliding temporal window of $W = 10$ aggregated network flows.
 - $k \in \{1, 2, 3\}$ is the **forecasting horizon** (anticipating escalation $k$ steps ahead).
 - $\mathcal{C}$ is the set of **MITRE ATT&CK enterprise tactics**:
-  $$\mathcal{C} = \{\text{Benign}, \text{Reconnaissance}, \text{Credential Access}, \text{Initial Access}, \text{Lateral Movement}, \text{Impact}\}$$
+
+$$
+\mathcal{C} = \{\text{Benign}, \text{Reconnaissance}, \text{Credential Access}, \text{Initial Access}, \text{Lateral Movement}, \text{Impact}\}
+$$
 
 Rather than asking *"Is this flow malicious right now?"*, ChronoGuard answers:
 > *"Given the micro-dynamics of the last $W$ flows, what is the probability that the network transitions into a high-severity stage within the next $k$ time windows?"*

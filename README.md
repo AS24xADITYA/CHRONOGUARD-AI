@@ -14,12 +14,19 @@
 ## 1. Paradigm Shift: Point-in-Time vs. Sequence Forecasting
 
 Traditional Network Intrusion Detection Systems (NIDS)—ranging from signature scanners (Snort, Suricata) to shallow machine learning models (Random Forests, XGBoost, MLPs)—evaluate flows under an **independent and identically distributed ($i.i.d.$)** assumption:
-$$\hat{y}_t = f(\mathbf{x}_t)$$
+
+$$
+\hat{y}_t = f(\mathbf{x}_t)
+$$
 
 Under this paradigm, an isolated port scan or slow-rate brute-force probe is frequently indistinguishable from benign system discovery or network jitter. By the time an alert triggers at the point of impact (payload detonation or volumetric flood), **the perimeter is breached and dwell time has elapsed**.
 
 ChronoGuard reformulates cyber defense as a **stochastic sequence forecasting problem**:
-$$\mathbb{P}\left(\mathbf{y}_{t+k} \in \mathcal{C} \;\middle|\; \mathbf{W}_t = [\mathbf{x}_{t-W+1}, \dots, \mathbf{x}_t]\right)$$
+
+$$
+\mathbb{P}\left(\mathbf{y}_{t+k} \in \mathcal{C} \mid \mathbf{W}_t = [\mathbf{x}_{t-W+1}, \dots, \mathbf{x}_t]\right)
+$$
+
 Where:
 - $\mathbf{W}_t$ is a sliding sequence of $W = 10$ aggregated kinetic network flow windows.
 - $k \in \{1, 2, 3\}$ is the **lookahead forecasting horizon**.
