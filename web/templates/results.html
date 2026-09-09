@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Analysis Dashboard — {{ job.original_filename }}{% endblock %}
+
+{% block content %}
+<div class="space-y-8" x-data="{ activeTab: 'timeline', selectedWindow: 0 }">
+
+  <!-- Breadcrumb & Top Title Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy-700 pb-4">
+    <div>
+      <div class="flex items-center space-x-2 text-xs text-gray-400 font-mono">
+        <a href="/history" class="hover:text-cyan-400 transition-colors">Audit History</a>
+        <span>/</span>
+        <span class="text-gray-300">Job: {{ job.id[:8] }}...</span>
+      </div>
+      <h1 class="text-2xl font-bold font-mono text-white flex items-center space-x-3 mt-1">
+        <span>{{ job.original_filename }}</span>
+        <span class="text-xs px-2.5 py-0.5 rounded-full font-mono font-medium {{ results.summary.dominant_stage_metadata.badge_class }}">
+          {{ results.summary.dominant_stage }}
+        </span>
+      </h1>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center space-x-3">
+      <a href="/upload" class="px-3.5 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-mono text-gray-200 transition-all">
+        ← Analyze Another File
+      </a>
+      <button onclick="window.print()" class="px-3.5 py-1.5 rounded-lg bg-navy-800 hover:bg-navy-700 border border-navy-600 text-xs font-mono text-cyan-400 transition-all flex items-center space-x-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+        </svg>
+        <span>Print Report</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Top 3 Summary Cards (KPI Metrics) -->
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+    
+    <!-- Card 1: Peak Infiltration Risk -->
+    <div class="soc-panel p-5 border-l-4" style="border-left-color: {% if results.summary.max_infiltration_probability < 0.33 %}#10B981{% elif results.summary.max_infiltration_probability < 0.67 %}#F59E0B{% else %}#EF4444{% endif %};">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-gray-400 uppercase">Peak Infiltration Risk</span>
+        <span class="text-xs font-mono {% if results.summary.max_infiltration_probability < 0.33 %}text-emerald-400{% elif results.summary.max_infiltration_probability < 0.67 %}text-amber-400{% else %}text-red-400{% endif %}">
+          {% if results.summary.max_infiltration_probability < 0.33 %}LOW RISK{% elif results.summary.max_infiltration_probability < 0.67 %}ELEVATED{% else %}CRITICAL{% endif %}
+        </span>
+      </div>
+      <div class="text-3xl font-extrabold font-mono text-white mt-2" id="metric-max-prob">
+        {{ (results.summary.max_infiltration_probability * 100)|round(1) }}%
+      </div>
+      <p class="text-[11px] text-gray-400 mt-1">Maximum forecasted breach probability across all time windows</p>
+    </div>
+
+    <!-- Card 2: Dominant ATT&CK Stage -->
+    <div class="soc-panel p-5 border-l-4" style="border-left-color: {{ results.summary.dominant_stage_metadata.color }};">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-gray-400 uppercase">Dominant Attack Stage</span>
+        <span class="text-xs font-mono text-gray-400">{{ results.summary.dominant_stage_metadata.mitre_id }}</span>
+      </div>
+      <div class="text-2xl font-bold font-mono text-white mt-2 truncate">
+        {{ results.summary.dominant_stage }}
+      </div>
+      <p class="text-[11px] text-gray-400 mt-1">{{ results.summary.dominant_stage_metadata.description }}</p>
+    </div>
+
+    <!-- Card 3: Windows Flagged -->
+    <div class="soc-panel p-5 border-l-4 border-cyan-500">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono text-gray-400 uppercase">Flagged Time Windows</span>
+        <span class="text-xs font-mono text-cyan-400">{{ results.summary.total_windows }} Total</span>
+      </div>
+      <div class="text-3xl font-extrabold font-mono text-white mt-2" id="metric-flagged-count">
+        {{ results.summary.num_windows_flagged }}
+      </div>
+      <p class="text-[11px] text-gray-400 mt-1">Windows exceeding warning threshold (P &ge; 0.66)</p>
+    </div>
+
+  </div>
+
+  <!-- Primary Visual: Timeline Chart -->
+  <div class="soc-panel p-6 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div>
+        <h3 class="text-base font-bold font-mono text-white flex items-center space-x-2">
+          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
+          <span>Temporal Infiltration Trajectory</span>
+        </h3>
+        <p class="text-xs text-gray-400">Sequence forecast P(attack) across chronological flow aggregation windows</p>
+      </div>
+      <div class="flex items-center space-x-3 text-xs font-mono">
+        <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span><span class="text-gray-400">Safe (&lt;0.33)</span></span>
+        <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span class="text-gray-400">Warning (0.33-0.66)</span></span>
+        <span class="flex items-center space-x-1"><span class="w-2.5 h-2.5 rounded-full bg-red-500"></span><span class="text-gray-400">Critical (&gt;0.66)</span></span>
+      </div>
+    </div>
+
+    <div class="relative h-72 sm:h-80 w-full">
+      <canvas id="timeline-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- Two Column Layout: Explainability Heatmap & Model Comparison -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    
+    <!-- Left Column: Self-Attention Explainability Panel -->
+    <div class="soc-panel p-6 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold font-mono text-white flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+            <span>Self-Attention Explainability Hook</span>
+          </h3>
+          <p class="text-xs text-gray-400">Which historical time windows & features drove the forecast</p>
+        </div>
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-navy-800 text-cyan-400 border border-navy-700">Native Attention</span>
+      </div>
+
+      <!-- Attention Weight Heatmap Strip -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs font-mono text-gray-400">
+          <span>Historical Sequence Windows (W=10)</span>
+          <span class="text-cyan-400">Darker = Stronger Focus</span>
+        </div>
+        
+        <div class="grid grid-cols-10 gap-1.5 pt-1">
+          {% for item in results.latest_attention %}
+          <div class="flex flex-col items-center space-y-1">
+            <div 
+              class="w-full h-9 rounded attention-cell flex items-center justify-center text-[10px] font-mono font-bold border {% if item.is_peak %}border-cyan-400 shadow-md shadow-cyan-400/30 text-black{% else %}border-navy-700 text-gray-300{% endif %}"
+              style="background-color: rgba(34, 211, 238, {{ [item.attention_weight * 3.5, 0.95]|min }});"
+              title="Window offset {{ item.relative_window }}: attention weight {{ item.attention_weight }}"
+            >
+              {{ (item.attention_weight * 100)|round(0)|int }}%
+            </div>
+            <span class="text-[9px] font-mono text-gray-500">W{{ loop.index }}</span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Top Driving Traffic Features -->
+      <div class="space-y-3 pt-2">
+        <h4 class="text-xs font-mono uppercase text-gray-400">Dominant Traffic Drivers (Peak Window):</h4>
+        
+        <div class="space-y-2.5">
+          {% for feat in results.latest_top_features %}
+          <div class="space-y-1">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-mono text-gray-200 font-medium">{{ feat.display_name }}</span>
+              <span class="font-mono text-cyan-400">{{ (feat.weight * 100)|round(1) }}% impact</span>
+            </div>
+            <div class="w-full bg-navy-950 rounded-full h-1.5 overflow-hidden border border-navy-700">
+              <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-1.5 rounded-full" style="width: {{ [feat.weight * 100, 100]|min }}%;"></div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Baseline vs. LSTM Comparison -->
+    <div class="soc-panel p-6 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold font-mono text-white flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            <span>Empirical Model Comparison</span>
+          </h3>
+          <p class="text-xs text-gray-400">ChronoGuard LSTM vs. Classical Logistic Regression Baseline</p>
+        </div>
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-navy-800 text-gray-300 border border-navy-700">Held-Out Test Split</span>
+      </div>
+
+      <!-- Comparison Bar Chart -->
+      <div class="relative h-56 w-full">
+        <canvas id="comparison-chart"></canvas>
+      </div>
+
+      <!-- Side-by-side Metrics Table -->
+      {% if results.comparison_metrics %}
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs text-left text-gray-300 font-mono">
+          <thead class="text-gray-400 border-b border-navy-700">
+            <tr>
+              <th class="py-2">Metric</th>
+              <th class="py-2 text-cyan-400">ChronoGuard LSTM</th>
+              <th class="py-2 text-gray-400">Baseline (Logistic)</th>
+              <th class="py-2 text-emerald-400">&Delta; Improvement</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-navy-800 text-[11px]">
+            <tr>
+              <td class="py-2 font-medium">Macro F1 Score</td>
+              <td class="py-2 text-cyan-400">{{ (results.comparison_metrics.lstm.f1_score * 100)|round(2) }}%</td>
+              <td class="py-2 text-gray-400">{{ (results.comparison_metrics.baseline.f1_score * 100)|round(2) }}%</td>
+              <td class="py-2 text-emerald-400 font-bold">+{{ ((results.comparison_metrics.lstm.f1_score - results.comparison_metrics.baseline.f1_score) * 100)|round(2) }}%</td>
+            </tr>
+            <tr>
+              <td class="py-2 font-medium">Precision (Macro)</td>
+              <td class="py-2 text-cyan-400">{{ (results.comparison_metrics.lstm.precision * 100)|round(2) }}%</td>
+              <td class="py-2 text-gray-400">{{ (results.comparison_metrics.baseline.precision * 100)|round(2) }}%</td>
+              <td class="py-2 text-emerald-400 font-bold">+{{ ((results.comparison_metrics.lstm.precision - results.comparison_metrics.baseline.precision) * 100)|round(2) }}%</td>
+            </tr>
+            <tr>
+              <td class="py-2 font-medium">False Positive Rate (FPR)</td>
+              <td class="py-2 text-cyan-400">{{ (results.comparison_metrics.lstm.false_positive_rate * 100)|round(2) }}%</td>
+              <td class="py-2 text-gray-400">{{ (results.comparison_metrics.baseline.false_positive_rate * 100)|round(2) }}%</td>
+              <td class="py-2 text-emerald-400 font-bold">-{{ ((results.comparison_metrics.baseline.false_positive_rate - results.comparison_metrics.lstm.false_positive_rate) * 100)|round(2) }}%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+
+    </div>
+
+  </div>
+
+  <!-- Detailed Window Breakdown Table -->
+  <div class="soc-panel p-6 space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-base font-bold font-mono text-white">Window Sequence Audit Log</h3>
+        <p class="text-xs text-gray-400">Step-by-step forecast probabilities and predicted MITRE ATT&CK stages</p>
+      </div>
+      <span class="text-xs font-mono text-gray-400">{{ results.windows|length }} Windows Analyzed</span>
+    </div>
+
+    <div class="overflow-x-auto max-h-72">
+      <table class="w-full text-xs text-left text-gray-300 font-mono">
+        <thead class="text-gray-400 sticky top-0 bg-navy-900 border-b border-navy-700">
+          <tr>
+            <th class="py-2 px-3">Window</th>
+            <th class="py-2 px-3">Time Range</th>
+            <th class="py-2 px-3">Infiltration Risk</th>
+            <th class="py-2 px-3">Horizon [t+1, t+2, t+3]</th>
+            <th class="py-2 px-3">Predicted Stage</th>
+            <th class="py-2 px-3">Baseline Risk</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-navy-800 text-[11px]">
+          {% for w in results.windows %}
+          <tr class="hover:bg-navy-800/60 transition-colors">
+            <td class="py-2 px-3 font-semibold text-cyan-400">W{{ loop.index }}</td>
+            <td class="py-2 px-3 text-gray-400">{{ w.window_start }} &rarr; {{ w.window_end }}</td>
+            <td class="py-2 px-3 font-bold" style="color: {% if w.infiltration_probability < 0.33 %}#10B981{% elif w.infiltration_probability < 0.67 %}#F59E0B{% else %}#EF4444{% endif %};">
+              {{ (w.infiltration_probability * 100)|round(1) }}%
+            </td>
+            <td class="py-2 px-3 text-gray-300">
+              [{{ (w.forecast_horizons[0]*100)|round(0)|int }}%, {{ (w.forecast_horizons[1]*100)|round(0)|int }}%, {{ (w.forecast_horizons[2]*100)|round(0)|int }}%]
+            </td>
+            <td class="py-2 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] {{ w.stage_metadata.badge_class }}">
+                {{ w.predicted_stage }}
+              </span>
+            </td>
+            <td class="py-2 px-3 text-gray-400">{{ (w.baseline_probability * 100)|round(1) }}%</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const resultsData = {{ results|tojson }};
+    initResultsPage(resultsData);
+  });
+</script>
+{% endblock %}

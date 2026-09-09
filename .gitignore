@@ -1,0 +1,36 @@
+# Python virtual environment
+venv/
+.venv/
+env/
+ENV/
+
+# Byte-compiled / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Large Datasets (CIC-IDS-2017 raw ~8GB, processed windows)
+data/raw/
+data/processed/
+
+# Preserve demo samples
+!data/samples/
+
+# SQLite Instance database
+instance/*.db
+*.sqlite3
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Build / Egg metadata
+dist/
+build/
+*.egg-info/

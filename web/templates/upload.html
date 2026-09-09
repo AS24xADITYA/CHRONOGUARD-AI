@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Upload & Analyze — ChronoGuard{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+
+  <!-- Header -->
+  <div class="text-center space-y-2">
+    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-navy-800 border border-navy-700 text-cyan-400 text-xs font-mono">
+      <span>INGESTION CONSOLE</span>
+    </div>
+    <h1 class="text-3xl font-extrabold text-white font-mono">Network Flow Sequence Ingestion</h1>
+    <p class="text-sm text-gray-400">Upload a CICFlowMeter CSV or select a pre-packaged benchmark campaign for near-instant analysis.</p>
+  </div>
+
+  <!-- Upload Card -->
+  <div class="soc-panel p-8 space-y-6">
+    <form id="upload-form" enctype="multipart/form-data">
+      <input type="file" id="file-input" name="file" accept=".csv" class="hidden" />
+
+      <!-- Drag and drop zone -->
+      <div id="dropzone" class="dropzone rounded-xl p-10 text-center cursor-pointer space-y-4 hover:border-cyan-400 transition-all">
+        <div class="w-16 h-16 rounded-full bg-navy-800 border border-navy-600 text-cyan-400 mx-auto flex items-center justify-center">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-base font-medium text-white">Drag & drop your network flow CSV here</p>
+          <p class="text-xs text-gray-400 mt-1">Accepts CIC-IDS-2017 schema flow records (max 50MB)</p>
+        </div>
+        <button type="button" class="px-4 py-2 rounded-lg bg-navy-700 hover:bg-navy-600 text-cyan-400 text-xs font-mono border border-cyan-500/30 transition-all">
+          Browse Local Files
+        </button>
+      </div>
+    </form>
+
+    <!-- Quick Demo Benchmark Buttons -->
+    <div class="border-t border-navy-700 pt-6 space-y-3">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-mono uppercase text-gray-400">One-Click Demonstration Datasets:</h3>
+        <span class="text-[11px] text-gray-500">No file upload required</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        
+        <!-- Sample 1: Benign -->
+        <button type="button" data-sample="sample_benign.csv" class="sample-btn flex flex-col items-start p-3.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-emerald-500/30 text-left transition-all group">
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-emerald-400 font-mono">1. BENIGN TRAFFIC</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1">Normal HTTP/web browsing flows without malicious indicators.</p>
+          <span class="text-[10px] text-gray-500 font-mono mt-2 group-hover:text-emerald-400 transition-colors">Run Analysis →</span>
+        </button>
+
+        <!-- Sample 2: Reconnaissance -->
+        <button type="button" data-sample="sample_reconnaissance.csv" class="sample-btn flex flex-col items-start p-3.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-amber-500/30 text-left transition-all group">
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-amber-400 font-mono">2. RECONNAISSANCE</span>
+            <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1">Active port scan & service probing transitioning from benign baseline.</p>
+          <span class="text-[10px] text-gray-500 font-mono mt-2 group-hover:text-amber-400 transition-colors">Run Analysis →</span>
+        </button>
+
+        <!-- Sample 3: Multi-Stage Attack -->
+        <button type="button" data-sample="sample_multi_stage_attack.csv" class="sample-btn flex flex-col items-start p-3.5 rounded-lg bg-navy-900 hover:bg-navy-800 border border-red-500/30 text-left transition-all group">
+          <div class="flex items-center justify-between w-full">
+            <span class="text-xs font-bold text-red-400 font-mono">3. MULTI-STAGE ATTACK</span>
+            <span class="w-2 h-2 rounded-full bg-red-400"></span>
+          </div>
+          <p class="text-[11px] text-gray-400 mt-1">Full sequence: Benign → PortScan → SSH Brute Force → DDoS flood.</p>
+          <span class="text-[10px] text-gray-500 font-mono mt-2 group-hover:text-red-400 transition-colors">Run Analysis →</span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Security & Privacy Guarantee -->
+  <div class="rounded-xl border border-navy-700 bg-navy-900/40 p-4 text-xs text-gray-400 flex items-start space-x-3">
+    <svg class="w-5 h-5 text-cyan-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <span class="text-gray-300 font-semibold">Zero External Transmission:</span> All model inference runs 100% locally on your machine via CPU-optimized PyTorch. No network traffic records or data payloads are transmitted to external cloud APIs or third parties.
+    </div>
+  </div>
+
+</div>
+
+<!-- Animated Processing Modal with Radar Scanner -->
+<div id="processing-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+  <div class="soc-panel p-8 max-w-md w-full text-center space-y-6 border-cyan-500/40 soc-panel-glow">
+    
+    <!-- Radar Scanner Visual -->
+    <div class="radar-container">
+      <div class="radar-circle radar-circle-1"></div>
+      <div class="radar-circle radar-circle-2"></div>
+      <div class="radar-sweep"></div>
+      <div class="absolute inset-0 flex items-center justify-center">
+        <span class="w-3 h-3 rounded-full bg-cyan-400 animate-ping"></span>
+      </div>
+    </div>
+
+    <div class="space-y-2">
+      <h3 class="text-lg font-bold font-mono text-white">Forecasting Threat Trajectory</h3>
+      <p id="processing-status-text" class="text-xs text-cyan-400 font-mono animate-pulse">
+        Aggregating flow windows and computing LSTM self-attention...
+      </p>
+    </div>
+
+    <div class="w-full bg-navy-950 rounded-full h-1.5 overflow-hidden border border-navy-700">
+      <div class="bg-cyan-400 h-1.5 rounded-full w-full animate-pulse"></div>
+    </div>
+
+    <p class="text-[11px] text-gray-500 font-mono">Near-instant offline analysis executing in background thread.</p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}ChronoGuard — Temporal Cyber-Attack Forecasting{% endblock %}</title>
+  <meta name="description" content="ChronoGuard detects the temporal build-up of cyber attacks before compromise lands using LSTM sequence forecasting and explainable self-attention.">
+
+  <!-- Tailwind CSS CDN -->
+  <!-- Offline Vendored Tailwind CSS -->
+  <script src="{{ url_for('static', filename='vendor/tailwind.min.js') }}"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              950: '#070B14',
+              900: '#0B1120',
+              800: '#131B2E',
+              700: '#1E293B',
+              600: '#334155',
+            },
+            cyan: {
+              400: '#22D3EE',
+              500: '#06B6D4',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom SOC Theme & Animations -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+
+  <!-- Offline Vendored Chart.js & Alpine.js -->
+  <script src="{{ url_for('static', filename='vendor/chart.min.js') }}"></script>
+  <script defer src="{{ url_for('static', filename='vendor/alpine.min.js') }}"></script>
+
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-[#0B1120] text-gray-200 min-h-screen flex flex-col selection:bg-cyan-500 selection:text-black">
+
+  <!-- Navigation Header -->
+  <header class="border-b border-navy-700 bg-navy-900/90 backdrop-blur-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand / Logo -->
+      <a href="/" class="flex items-center space-x-3 group">
+        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:shadow-cyan-500/40 transition-all">
+          <svg class="w-6 h-6 text-black font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="text-xl font-bold tracking-tight text-white font-mono">CHRONO<span class="text-cyan-400">GUARD</span></span>
+            <span class="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">SOC v1.0</span>
+          </div>
+          <p class="text-[11px] text-gray-400 hidden sm:block">Temporal Cyber-Attack Sequence Forecaster</p>
+        </div>
+      </a>
+
+      <!-- Navigation Links -->
+      <nav class="flex items-center space-x-1 sm:space-x-4">
+        <a href="/" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {% if request.path == '/' %}text-cyan-400 bg-navy-800 border border-navy-700{% else %}text-gray-300 hover:text-white hover:bg-navy-800/50{% endif %}">
+          Overview
+        </a>
+        <a href="/upload" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {% if request.path == '/upload' %}text-cyan-400 bg-navy-800 border border-navy-700{% else %}text-gray-300 hover:text-white hover:bg-navy-800/50{% endif %}">
+          Upload & Analyze
+        </a>
+        <a href="/history" class="px-3 py-1.5 rounded-md text-sm font-medium transition-colors {% if request.path == '/history' %}text-cyan-400 bg-navy-800 border border-navy-700{% else %}text-gray-300 hover:text-white hover:bg-navy-800/50{% endif %}">
+          Audit History
+        </a>
+      </nav>
+
+      <!-- Engine Status Pill -->
+      <div class="hidden md:flex items-center space-x-2 px-3 py-1 rounded-full bg-navy-800 border border-navy-700 text-xs text-gray-300 font-mono">
+        <span class="pulse-dot"></span>
+        <span>ENGINE: <span class="text-emerald-400">ACTIVE (CPU)</span></span>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Content Body -->
+  <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer with Honest Limitations Notice -->
+  <footer class="border-t border-navy-700 bg-navy-950 py-6 text-xs text-gray-400">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div>
+        <p class="font-mono text-gray-300">ChronoGuard — Zero-Cost Flow Sequence Forecaster</p>
+        <p class="text-[11px] text-gray-500 mt-0.5">Built for Smart India Hackathon (SIH) | Offline-first, CPU-optimized</p>
+      </div>
+      <div class="max-w-xl text-[11px] text-gray-500 text-right md:text-left bg-navy-900/60 p-2.5 rounded border border-navy-800">
+        <span class="font-semibold text-gray-400">Honest Architectural Framing:</span> ChronoGuard models <code class="text-cyan-400">P(state_{t+k} | history)</code> via a 2-layer LSTM with self-attention. It is a temporal sequence forecaster for attack build-up, not a reinforcement-learning action simulator.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts_extra %}{% endblock %}
+</body>
+</html>

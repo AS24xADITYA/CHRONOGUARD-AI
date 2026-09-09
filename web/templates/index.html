@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}ChronoGuard — Cyber-Attack Sequence Forecaster{% endblock %}
+
+{% block content %}
+<div class="space-y-16">
+
+  <!-- Hero Section -->
+  <section class="relative rounded-2xl overflow-hidden border border-navy-700 bg-gradient-to-b from-navy-800 to-navy-900 p-8 sm:p-14 shadow-2xl">
+    <div class="absolute inset-0 bg-[radial-gradient(#22D3EE_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none"></div>
+    
+    <div class="relative z-10 max-w-3xl space-y-6">
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 text-xs font-mono">
+        <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
+        <span>PROACTIVE CYBER-ATTACK SEQUENCE FORECASTING</span>
+      </div>
+
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-tight font-mono">
+        Detect the <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Build-Up</span>,<br/>
+        Not Just the Breach.
+      </h1>
+
+      <p class="text-base sm:text-lg text-gray-300 leading-relaxed max-w-2xl">
+        Traditional intrusion detection classifies isolated flows after damage occurs. 
+        <strong class="text-cyan-400">ChronoGuard</strong> models network activity as a continuous temporal narrative — forecasting attack escalation from reconnaissance to lateral movement before compromise lands.
+      </p>
+
+      <div class="flex flex-wrap gap-4 pt-4">
+        <a href="/upload" class="inline-flex items-center space-x-2 px-6 py-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-sm transition-all shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40">
+          <span>Launch Analysis Console</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+          </svg>
+        </a>
+        <a href="/history" class="inline-flex items-center space-x-2 px-6 py-3 rounded-lg bg-navy-800 hover:bg-navy-700 text-gray-200 border border-navy-600 font-semibold text-sm transition-all">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <span>View Audit History</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Architecture Contrast: Static Classifier vs Temporal Forecaster -->
+  <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    
+    <!-- Legacy Model -->
+    <div class="soc-panel p-6 border-red-500/30 bg-red-950/10 space-y-4">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono uppercase px-2 py-1 rounded bg-red-950 text-red-400 border border-red-800">Legacy Approach</span>
+        <span class="text-xs text-gray-400">Isolated Classification</span>
+      </div>
+      <h3 class="text-lg font-bold text-white">Single-Flow / Point-in-Time IDS</h3>
+      <p class="text-sm text-gray-400">
+        Classifies each network flow in isolation. Discards temporal ordering, missing low-and-slow port probes, gradual credential stuffing, and staging activities until full payload impact occurs.
+      </p>
+      <ul class="text-xs text-gray-400 space-y-1.5 font-mono pt-2">
+        <li class="flex items-center text-red-400">✕ High alert fatigue & late warnings</li>
+        <li class="flex items-center text-red-400">✕ No progression modeling over time</li>
+        <li class="flex items-center text-red-400">✕ Static binary output without foresight</li>
+      </ul>
+    </div>
+
+    <!-- ChronoGuard Model -->
+    <div class="soc-panel p-6 border-cyan-500/30 bg-cyan-950/10 space-y-4 soc-panel-glow">
+      <div class="flex items-center justify-between">
+        <span class="text-xs font-mono uppercase px-2 py-1 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">ChronoGuard Approach</span>
+        <span class="text-xs text-cyan-400 font-mono">P(State_{t+k} | History)</span>
+      </div>
+      <h3 class="text-lg font-bold text-white">Temporal Sequence Forecaster</h3>
+      <p class="text-sm text-gray-400">
+        Aggregates sliding flow windows into temporal sequences. Uses a 2-layer LSTM with self-attention to predict probability distributions across K future horizons and map to MITRE ATT&CK stages.
+      </p>
+      <ul class="text-xs text-gray-300 space-y-1.5 font-mono pt-2">
+        <li class="flex items-center text-emerald-400">✓ Multi-step horizon forecast (t+1, t+2, t+3)</li>
+        <li class="flex items-center text-emerald-400">✓ Self-attention temporal explainability</li>
+        <li class="flex items-center text-emerald-400">✓ 6-Class simplified MITRE ATT&CK mapping</li>
+      </ul>
+    </div>
+
+  </section>
+
+  <!-- How ChronoGuard Works (3 Steps) -->
+  <section class="space-y-8">
+    <div class="text-center max-w-2xl mx-auto space-y-2">
+      <h2 class="text-2xl sm:text-3xl font-bold font-mono text-white">How ChronoGuard Works</h2>
+      <p class="text-sm text-gray-400">Three-phase flow from raw network metadata to explainable threat forecast</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      
+      <div class="soc-panel p-6 space-y-4">
+        <div class="w-12 h-12 rounded-xl bg-navy-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-mono font-bold text-lg">
+          01
+        </div>
+        <h4 class="text-base font-bold text-white">Flow Sequence Aggregation</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">
+          Ingests standard CICFlowMeter records, cleans numerical anomalies, and aggregates flows into sliding time windows (<code class="text-cyan-400">W=10</code>) measuring volume, timing, and TCP flag dynamics.
+        </p>
+      </div>
+
+      <div class="soc-panel p-6 space-y-4">
+        <div class="w-12 h-12 rounded-xl bg-navy-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-mono font-bold text-lg">
+          02
+        </div>
+        <h4 class="text-base font-bold text-white">LSTM Sequence Forecasting</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">
+          The 2-layer recurrent network models state transitions, forecasting infiltration probability across <code class="text-cyan-400">K=3</code> future horizons and categorizing the emerging attack stage.
+        </p>
+      </div>
+
+      <div class="soc-panel p-6 space-y-4">
+        <div class="w-12 h-12 rounded-xl bg-navy-800 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-mono font-bold text-lg">
+          03
+        </div>
+        <h4 class="text-base font-bold text-white">Self-Attention Explainability</h4>
+        <p class="text-xs text-gray-400 leading-relaxed">
+          A self-attention pooling layer highlights exactly which historical time windows and anomalous traffic features (e.g. SYN bursts, IAT collapses) drove the forecast.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA Box -->
+  <section class="soc-panel p-8 sm:p-10 text-center space-y-4 border-cyan-500/20 bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900">
+    <h3 class="text-xl sm:text-2xl font-bold font-mono text-white">Ready to inspect a network sequence?</h3>
+    <p class="text-sm text-gray-400 max-w-xl mx-auto">
+      Upload your own CSV or test one of our pre-packaged benchmark samples (Benign, Reconnaissance, or Multi-Stage Attack) in one click.
+    </p>
+    <div class="pt-2">
+      <a href="/upload" class="inline-flex items-center space-x-2 px-8 py-3.5 rounded-lg bg-cyan-400 hover:bg-cyan-300 text-black font-bold text-sm transition-all shadow-lg shadow-cyan-400/20">
+        <span>Go to Analysis Console</span>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

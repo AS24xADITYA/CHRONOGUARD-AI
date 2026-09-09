@@ -1,0 +1,164 @@
+/* ChronoGuard SOC Theme & Animations */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg-base: #0B1120;
+  --bg-panel: #131B2E;
+  --bg-panel-hover: #1A243B;
+  --border-color: #1E293B;
+  --border-bright: #334155;
+  --accent-cyan: #22D3EE;
+  --accent-cyan-glow: rgba(34, 211, 238, 0.25);
+  --color-safe: #10B981;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-critical: #B91C1C;
+  --text-main: #E5E7EB;
+  --text-muted: #94A3B8;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-main);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Glassmorphism Panels */
+.soc-panel {
+  background: rgba(19, 27, 46, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  transition: all 0.3s ease;
+}
+
+.soc-panel:hover {
+  border-color: var(--border-bright);
+}
+
+.soc-panel-glow {
+  border-color: rgba(34, 211, 238, 0.4);
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+
+/* Risk Pill Badges */
+.badge-safe {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34D399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #FBBF24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #F87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.badge-critical {
+  background: rgba(185, 28, 28, 0.25);
+  color: #FCA5A5;
+  border: 1px solid rgba(185, 28, 28, 0.5);
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 12px 2px rgba(239, 68, 68, 0.3);
+  }
+}
+
+/* Live Pulse Indicator */
+.pulse-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--accent-cyan);
+  box-shadow: 0 0 8px var(--accent-cyan);
+  animation: pulse-dot-anim 2s infinite ease-in-out;
+}
+
+@keyframes pulse-dot-anim {
+  0% { transform: scale(0.9); opacity: 0.7; }
+  50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px var(--accent-cyan); }
+  100% { transform: scale(0.9); opacity: 0.7; }
+}
+
+/* Radar Scanner in Upload Modal */
+.radar-container {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  margin: 0 auto;
+}
+
+.radar-sweep {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 2px solid rgba(34, 211, 238, 0.3);
+  background: conic-gradient(from 0deg at 50% 50%, rgba(34, 211, 238, 0.4) 0deg, rgba(34, 211, 238, 0.0) 90deg);
+  animation: radar-spin 2s linear infinite;
+}
+
+.radar-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  border: 1px dashed rgba(34, 211, 238, 0.3);
+}
+
+.radar-circle-1 { width: 50px; height: 50px; }
+.radar-circle-2 { width: 95px; height: 95px; }
+
+@keyframes radar-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Dropzone Hover Effects */
+.dropzone {
+  border: 2px dashed var(--border-bright);
+  transition: all 0.3s ease;
+}
+
+.dropzone.dragover {
+  border-color: var(--accent-cyan);
+  background: rgba(34, 211, 238, 0.05);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.15);
+}
+
+/* Attention Heatmap Bar */
+.attention-cell {
+  transition: all 0.2s ease;
+}
+
+.attention-cell:hover {
+  transform: translateY(-2px);
+}

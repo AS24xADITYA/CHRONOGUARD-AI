@@ -1,0 +1,59 @@
+# ChronoGuard System Configuration & Hyperparameters
+
+dataset:
+  raw_dir: "data/raw"
+  processed_dir: "data/processed"
+  samples_dir: "data/samples"
+  selected_features:
+    - "Total Fwd Packets"
+    - "Total Backward Packets"
+    - "Total Length of Fwd Packets"
+    - "Total Length of Bwd Packets"
+    - "Flow Duration"
+    - "Flow IAT Mean"
+    - "Flow IAT Std"
+    - "Flow IAT Max"
+    - "Fwd IAT Mean"
+    - "Bwd IAT Mean"
+    - "SYN Flag Count"
+    - "ACK Flag Count"
+    - "FIN Flag Count"
+    - "RST Flag Count"
+    - "PSH Flag Count"
+    - "URG Flag Count"
+    - "Flow Bytes/s"
+    - "Flow Packets/s"
+    - "Init_Win_bytes_forward"
+    - "Init_Win_bytes_backward"
+    - "Average Packet Size"
+
+windowing:
+  window_size_flows: 20       # Number of flows per aggregated window when timestamps are discrete/relative
+  window_duration_sec: 10     # Seconds per window when timestamps are available
+  sequence_length_w: 10       # W: input window sequence length
+  forecast_horizon_k: 3       # K: number of forecast steps ahead
+
+model:
+  hidden_dim: 64
+  num_layers: 2
+  dropout: 0.2
+  num_stages: 6
+  learning_rate: 0.001
+  batch_size: 64
+  epochs: 15
+  random_seed: 42
+  bce_loss_weight: 1.0
+  ce_loss_weight: 1.0
+
+inference:
+  model_path: "models/chronoguard_lstm.pt"
+  scaler_path: "models/scaler.pkl"
+  baseline_path: "models/baseline_lr.pkl"
+  max_upload_size_mb: 50
+  risk_thresholds:
+    safe: 0.33
+    warning: 0.66
+    critical: 1.0
+
+database:
+  db_path: "instance/chronoguard.db"

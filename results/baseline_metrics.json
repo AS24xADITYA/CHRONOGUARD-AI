@@ -1,0 +1,54 @@
+{
+  "model_name": "Logistic Regression Baseline",
+  "accuracy": 0.5405,
+  "precision": 0.1568,
+  "recall": 0.1568,
+  "f1_score": 0.1379,
+  "false_positive_rate": 0.059,
+  "false_negative_rate": 0.4491,
+  "total_test_samples": 1062,
+  "confusion_matrix": {
+    "true_negatives": 574,
+    "false_positives": 36,
+    "false_negatives": 203,
+    "true_positives": 249
+  },
+  "per_stage": {
+    "Benign": {
+      "precision": 0.7387,
+      "recall": 0.941,
+      "f1_score": 0.8277,
+      "support": 610
+    },
+    "Reconnaissance": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 121
+    },
+    "Credential Access": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 0
+    },
+    "Initial Access": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 106
+    },
+    "Lateral Movement": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 100
+    },
+    "Impact": {
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1_score": 0.0,
+      "support": 125
+    }
+  }
+}

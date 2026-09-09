@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Audit History — ChronoGuard{% endblock %}
+
+{% block content %}
+<div class="space-y-6" x-data="{ sortBy: 'date', sortAsc: false }">
+
+  <!-- Title & Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy-700 pb-4">
+    <div>
+      <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-navy-800 border border-navy-700 text-cyan-400 text-xs font-mono mb-2">
+        <span>SECURITY AUDIT TRAIL</span>
+      </div>
+      <h1 class="text-3xl font-extrabold font-mono text-white">Historical Analysis Logs</h1>
+      <p class="text-sm text-gray-400">Chronological registry of previously inspected network flow sequences.</p>
+    </div>
+
+    <a href="/upload" class="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-xs font-mono transition-all">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      <span>New Ingestion</span>
+    </a>
+  </div>
+
+  <!-- History Records Table -->
+  <div class="soc-panel overflow-hidden">
+    {% if jobs %}
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs text-left text-gray-300 font-mono">
+        <thead class="text-gray-400 bg-navy-900 border-b border-navy-700">
+          <tr>
+            <th class="py-3.5 px-4 font-semibold">Job ID</th>
+            <th class="py-3.5 px-4 font-semibold">Filename</th>
+            <th class="py-3.5 px-4 font-semibold">Ingestion Timestamp</th>
+            <th class="py-3.5 px-4 font-semibold">Windows</th>
+            <th class="py-3.5 px-4 font-semibold">Peak Infiltration Risk</th>
+            <th class="py-3.5 px-4 font-semibold">Dominant Stage</th>
+            <th class="py-3.5 px-4 font-semibold">Status</th>
+            <th class="py-3.5 px-4 font-semibold text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-navy-800 text-[12px]">
+          {% for job in jobs %}
+          <tr class="hover:bg-navy-800/50 transition-colors">
+            <td class="py-3 px-4 font-mono text-cyan-400">
+              <span title="{{ job.id }}">{{ job.id[:8] }}...</span>
+            </td>
+            <td class="py-3 px-4 font-medium text-white max-w-xs truncate">
+              {{ job.original_filename }}
+            </td>
+            <td class="py-3 px-4 text-gray-400">
+              {{ job.uploaded_at.strftime('%Y-%m-%d %H:%M:%S') if job.uploaded_at else 'N/A' }}
+            </td>
+            <td class="py-3 px-4 text-gray-300">
+              {{ job.total_windows }}
+            </td>
+            <td class="py-3 px-4 font-bold" style="color: {% if job.overall_max_infiltration_prob < 0.33 %}#10B981{% elif job.overall_max_infiltration_prob < 0.67 %}#F59E0B{% else %}#EF4444{% endif %};">
+              {{ (job.overall_max_infiltration_prob * 100)|round(1) if job.overall_max_infiltration_prob is not None else 0 }}%
+            </td>
+            <td class="py-3 px-4">
+              <span class="px-2 py-0.5 rounded text-[10px] 
+                {% if job.dominant_stage == 'Benign' %}badge-safe
+                {% elif job.dominant_stage in ['Reconnaissance', 'Credential Access'] %}badge-warning
+                {% else %}badge-danger{% endif %}">
+                {{ job.dominant_stage or 'Benign' }}
+              </span>
+            </td>
+            <td class="py-3 px-4">
+              {% if job.status == 'done' %}
+              <span class="inline-flex items-center space-x-1.5 text-emerald-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                <span>DONE</span>
+              </span>
+              {% elif job.status == 'running' %}
+              <span class="inline-flex items-center space-x-1.5 text-cyan-400 animate-pulse">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                <span>RUNNING</span>
+              </span>
+              {% elif job.status == 'error' %}
+              <span class="inline-flex items-center space-x-1.5 text-red-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+                <span>ERROR</span>
+              </span>
+              {% else %}
+              <span class="text-gray-500">QUEUED</span>
+              {% endif %}
+            </td>
+            <td class="py-3 px-4 text-right">
+              {% if job.status == 'done' %}
+              <a href="/results/{{ job.id }}" class="px-3 py-1 rounded bg-navy-800 hover:bg-navy-700 text-cyan-400 border border-navy-700 hover:border-cyan-500/40 transition-all text-xs">
+                View SOC Dashboard &rarr;
+              </a>
+              {% else %}
+              <span class="text-gray-600 text-xs">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-12 text-center space-y-3">
+      <div class="w-12 h-12 rounded-full bg-navy-800 border border-navy-700 text-gray-500 mx-auto flex items-center justify-center">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+      </div>
+      <h3 class="text-sm font-bold font-mono text-white">No Previous Analysis Runs Found</h3>
+      <p class="text-xs text-gray-400 max-w-sm mx-auto">Upload a flow CSV file or click one of the benchmark samples to populate the audit trail.</p>
+      <div class="pt-2">
+        <a href="/upload" class="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-xs font-mono transition-all">
+          <span>Run First Analysis</span>
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}
