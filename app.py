@@ -39,10 +39,26 @@ app = Flask(
     static_folder="web/static",
 )
 
+# Startup ensure instance directory exists (safe for ephemerality in Render)
+os.makedirs(INSTANCE_DIR, exist_ok=True)
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "chronoguard-dev-secret-key-2026")
 app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{INSTANCE_DIR / 'chronoguard.db'}"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["MAX_CONTENT_LENGTH"] = 50 * 1024 * 1024  # 50 MB upload limit per TRD
+
+# Production Security: Disable debug mode unless FLASK_DEBUG is explicitly enabled
+app.config["DEBUG"] = os.environ.get("FLASK_DEBUG", "0").lower() in ("1", "true", "yes")
+
+# Memory Guard for Render Free Tier (512MB RAM):
+# A 50MB raw CSV expands to ~150-250MB in pandas DataFrames and PyTorch tensors.
+# When running 2 Gunicorn workers on a 512MB instance, concurrent large uploads risk
+# triggering the Linux cgroup Out-Of-Memory (OOM) killer.
+# Therefore: default to 15MB if RENDER is detected, while preserving 50MB locally.
+# Can also be explicitly tuned via MAX_CONTENT_LENGTH_MB environment variable.
+default_max_mb = 15 if os.environ.get("RENDER") else 50
+max_upload_mb = int(os.environ.get("MAX_CONTENT_LENGTH_MB", default_max_mb))
+app.config["MAX_CONTENT_LENGTH"] = max_upload_mb * 1024 * 1024
 
 db.init_app(app)
 
@@ -193,7 +209,8 @@ def upload():
 
         return jsonify({"job_id": job_id, "status": "queued"}), 202
 
-    return render_template("upload.html")
+    max_mb = app.config.get("MAX_CONTENT_LENGTH", 50 * 1024 * 1024) // (1024 * 1024)
+    return render_template("upload.html", max_upload_mb=max_mb)
 
 
 @app.route("/status/<job_id>")
@@ -284,19 +301,24 @@ def health():
 
 @app.errorhandler(413)
 def request_entity_too_large(error):
-    """Handle uploads exceeding MAX_CONTENT_LENGTH (50MB)."""
+    """Handle uploads exceeding MAX_CONTENT_LENGTH."""
+    max_mb = app.config.get("MAX_CONTENT_LENGTH", 50 * 1024 * 1024) // (1024 * 1024)
+    err_msg = f"File exceeds the {max_mb} MB upload limit. Please upload a smaller flow slice or pre-sampled extract."
     if request.is_json or request.path.startswith("/upload"):
         return jsonify({
-            "error": "File exceeds the 50 MB upload limit. Please upload a smaller flow slice or pre-sampled extract."
+            "error": err_msg
         }), 413
-    flash("File exceeds the maximum allowed size of 50 MB.", "error")
+    flash(f"File exceeds the maximum allowed size of {max_mb} MB.", "error")
     return redirect(url_for("upload")), 413
 
 
 # ---------------------------------------------------------------------------
-# CLI Entrypoint
+# CLI Entrypoint (Local Development Only)
+# Production uses Gunicorn: web: gunicorn app:app ...
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="127.0.0.1", port=port, debug=True)
+    host = os.environ.get("HOST", "0.0.0.0")
+    debug = os.environ.get("FLASK_DEBUG", "0").lower() in ("1", "true", "yes")
+    app.run(host=host, port=port, debug=debug)

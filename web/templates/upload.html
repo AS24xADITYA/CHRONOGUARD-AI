@@ -28,7 +28,7 @@
         </div>
         <div>
           <p class="text-base font-medium text-white">Drag & drop your network flow CSV here</p>
-          <p class="text-xs text-gray-400 mt-1">Accepts CIC-IDS-2017 schema flow records (max 50MB)</p>
+          <p class="text-xs text-gray-400 mt-1">Accepts CIC-IDS-2017 schema flow records (max {{ max_upload_mb|default(50) }}MB)</p>
         </div>
         <button type="button" class="px-4 py-2 rounded-lg bg-navy-700 hover:bg-navy-600 text-cyan-400 text-xs font-mono border border-cyan-500/30 transition-all">
           Browse Local Files
